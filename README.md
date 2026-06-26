@@ -1,131 +1,352 @@
-# MedSafe AI
+# 💊 MedSafe AI
 
-> **Kaggle 5-Day AI Agents Capstone Project Submission**  
-> **Track:** Concierge Agents  
-> **Theme:** Local-First, Privacy-First Medication Scheduling & Clinical Safety Assistant
-
-MedSafe AI is an empathetic personal health companion designed to help users manage complex medication schedules, track daily compliance, log symptoms, and scan for safety conflicts.
-
-Because medical history is highly sensitive, MedSafe AI is built on a **local-first, privacy-first architecture**. It stores all records locally on your machine in an SQLite database accessed securely through a custom Model Context Protocol (MCP) server. Sensitive health details are processed locally, ensuring records never leave the user's computer.
+> **Kaggle 5-Day AI Agents Capstone Project**
+> **Track:** Concierge Agents
+> **Theme:** Local-First, Privacy-First Medication Management & Clinical Safety Assistant
 
 ---
 
-## Key Features
+## 📌 Overview
 
-### 1. Smart Medication Scheduling & Checklist
-- Natural language schedule entry (e.g., *"I need to take Lisinopril 10mg every morning"*), which the agent automatically structures and logs.
-- Interactive daily checklist to check off or skip doses, building a compliance history.
+**MedSafe AI** is an AI-powered healthcare companion that helps users safely manage medications, monitor treatment adherence, track symptoms, and detect potential clinical risks.
 
-### 2. Proactive Drug & Allergy Safety Checks
-- **Allergy Warnings:** Cross-checks any new medication request against the user's registered allergy profile (e.g., flagging *Amoxicillin* if the user has a *Penicillin* allergy).
-- **Drug-Drug Interactions:** Uses local clinical guidelines to identify dangerous combinations (e.g., flagging the bleeding risks of taking *Aspirin* while on blood thinners like *Warfarin*).
-- **Override Warning Modal:** Prompts the user with a modal explaining warnings in detail before letting them confirm or cancel scheduling.
+Unlike cloud-based health assistants, **all sensitive medical information remains on the user's device**.
 
-### 3. Empathetic Symptom Logging & Correlation
-- Log physical symptoms (e.g., *"dizzy after lunch, severity 6/10"*) via chat or form.
-- Correlates symptoms directly with specific medication doses to track side effects over time.
-- **Dynamic Correlation Chart:** A dual-axis timeline graph showing the correlation between doses taken (bar chart) and average symptom severity (line graph).
+The application follows a **Local-First + Privacy-First** architecture where medication records, symptom history, allergies, and clinical data are stored securely in a local SQLite database and accessed through a custom **Model Context Protocol (MCP)** server.
 
-### 4. Symptom-to-Medicine Lookup & Suggestions
-- Query symptoms (e.g., *headache*, *cough*, *acid reflux*) directly via a dedicated lookup widget or natural language chat.
-- Recommends basic medications mapped in local clinical guidelines.
-- **Clinical Warning Disclaimer:** Prominently highlights safety notes enforcing doctor prescription verification before taking any suggested drugs.
-
-### 5. Formatted Doctor Reports
-- Synthesizes medication adherence rate, allergy profile, recent symptom logs, and full intake history into a clean report.
-- Includes custom print stylesheets (`@media print`) so the patient can print a physical clinical summary sheet for their next doctor visit.
+No patient records are uploaded to external servers.
 
 ---
 
-## Technical Architecture
+# ✨ Features
 
-The application is structured as a full-stack, local-first multi-agent system:
+## 💊 Smart Medication Scheduling
+
+* Add medications using natural language
+
+Example:
+
+> "Take Lisinopril 10mg every morning"
+
+The AI automatically extracts:
+
+* Medication name
+* Dosage
+* Schedule
+* Frequency
+
+and saves everything into the local database.
+
+### Daily Medication Checklist
+
+* Mark doses as completed
+* Skip missed doses
+* Track medication adherence history
+
+---
+
+## 🛡️ Clinical Safety Checks
+
+Before scheduling any medication, MedSafe AI automatically performs safety validation.
+
+### Allergy Detection
+
+Example:
+
+```
+User Allergy:
+Penicillin
+
+Medication:
+Amoxicillin
+```
+
+The assistant immediately warns the user before allowing scheduling.
+
+---
+
+### Drug Interaction Detection
+
+The local clinical guideline database detects dangerous combinations.
+
+Example:
+
+* Aspirin + Warfarin
+* Increased bleeding risk
+
+Users receive an interactive warning dialog before confirming.
+
+---
+
+## 📈 Symptom Tracking
+
+Users can log symptoms naturally.
+
+Example:
+
+```
+Dizzy after lunch
+Severity: 6/10
+```
+
+Every symptom entry is linked to nearby medication doses to help identify possible side effects.
+
+---
+
+## 📊 Medication vs Symptom Correlation
+
+The dashboard includes a dual-axis timeline visualization showing:
+
+* Medication doses taken (Bar Chart)
+* Average symptom severity (Line Chart)
+
+This helps users and healthcare professionals identify treatment patterns.
+
+---
+
+## 💡 Symptom → Medication Lookup
+
+Users can search symptoms such as:
+
+* Headache
+* Fever
+* Cough
+* Acid reflux
+
+The assistant recommends commonly used medications from the local clinical guidelines while displaying a clear clinical disclaimer encouraging consultation with a healthcare professional.
+
+---
+
+## 📄 Doctor Visit Report
+
+Generate a printable clinical summary including:
+
+* Medication adherence rate
+* Current medications
+* Allergy profile
+* Symptom history
+* Medication timeline
+* Recent side effects
+
+A custom `@media print` stylesheet ensures the report prints cleanly for doctor appointments.
+
+---
+
+# 🔒 Privacy First
+
+Healthcare information is highly sensitive.
+
+MedSafe AI was designed so patient data never leaves the local machine.
+
+### Stored Locally
+
+* Medication schedule
+* Symptom logs
+* Allergy profile
+* Compliance history
+* Clinical notes
+
+### Never Sent Online
+
+* Medical history
+* Personal health information
+* Database records
+
+---
+
+# 🏗️ Architecture
 
 ```mermaid
 graph TD
-    UI["Frontend Dashboard UI"] -->|"REST API / AJAX"| FastAPI["FastAPI Backend Server"]
-    UI -->|"Interactive Chat"| FastAPI
-    FastAPI -->|"Agent chat()"| ADK["Google Antigravity SDK Agent"]
-    FastAPI -->|"Direct Queries"| DB[("SQLite Database")]
-    ADK -->|"Stdio Transport"| MCPServer["MedSafe SQLite MCP Server"]
-    MCPServer -->|"Read/Write / Suggest Tools"| DB
+
+UI["Frontend Dashboard"]
+
+UI -->|"REST API"| FastAPI["FastAPI Backend"]
+
+UI -->|"Chat"| FastAPI
+
+FastAPI -->|"Agent Requests"| Agent["Google Antigravity Agent"]
+
+FastAPI -->|"SQLite Queries"| DB[(SQLite)]
+
+Agent -->|"MCP (stdio)"| MCP["FastMCP Server"]
+
+MCP --> DB
 ```
 
 ---
 
-## Kaggle Capstone Criteria Met
+# 🤖 AI Agent Workflow
 
-| Course Concept | Implementation in MedSafe AI | File Location |
-| :--- | :--- | :--- |
-| **Agent / Multi-agent (ADK)** | Coordinator agent config using `google.antigravity.Agent` and `LocalAgentConfig` to parse inputs, coordinate workflows, chat with users, and suggest medications. | `backend/medsafe_agent.py` |
-| **MCP Server** | A custom `FastMCP` server running over local standard input/output (stdio) transport, exposing secure database access and clinical suggestion tools to the agent. | `backend/mcp_server.py` |
-| **Security & Privacy** | Clinical safety checks, allergy warnings, and symptom suggestions run entirely on local databases. No API keys or credentials are stored or shared. | `backend/database.py` |
-| **Robust Offline Fallback** | Integrates a local keyword and regex parsing engine that acts as the agent if no Gemini API Key is present, ensuring the app is always functional. | `backend/medsafe_agent.py` |
+```text
+User Request
+      │
+      ▼
+FastAPI Backend
+      │
+      ▼
+Google Antigravity Agent
+      │
+      ▼
+FastMCP Server
+      │
+      ▼
+SQLite Database
+      │
+      ▼
+Clinical Safety Validation
+      │
+      ▼
+Response Returned
+```
 
 ---
 
-## Repository Structure
+# 📁 Project Structure
 
-```
+```text
+MedSafe-AI
+│
 ├── backend/
-│   ├── database.py               # SQLite schema definition and seed data
-│   ├── clinical_guidelines.json  # Local drug interactions, allergy classes, and symptom-medicine mappings
-│   ├── mcp_server.py             # Custom FastMCP server exposing database and suggestion tools
-│   ├── medsafe_agent.py          # Antigravity Agent and rule-based fallback processor
-│   ├── main.py                   # FastAPI REST server serving static files and API routes
-│   └── medsafe.db                # SQLite Database file (created on startup)
+│   ├── database.py
+│   ├── clinical_guidelines.json
+│   ├── mcp_server.py
+│   ├── medsafe_agent.py
+│   ├── main.py
+│   └── medsafe.db
+│
 ├── frontend/
-│   ├── index.html                # Dashboard markup (checklist, tracker, lookup, and chat views)
-│   ├── styles.css                # Custom CSS styling (dark mode, glassmorphic layout)
-│   └── app.js                    # Client UI controller and API integration
-└── README.md                     # Project documentation
+│   ├── index.html
+│   ├── styles.css
+│   └── app.js
+│
+└── README.md
 ```
 
 ---
 
-## Setup & Running Locally
+# 🛠️ Technology Stack
 
-### Prerequisites
+| Component | Technology             |
+| --------- | ---------------------- |
+| Backend   | FastAPI                |
+| AI Agent  | Google Antigravity SDK |
+| MCP       | FastMCP                |
+| Database  | SQLite                 |
+| Frontend  | HTML, CSS, JavaScript  |
+| Charts    | Chart.js               |
+| Storage   | Local SQLite           |
 
-Ensure you have **Python 3.10+** installed, then install the necessary dependencies:
+---
+
+# 🎯 Kaggle Capstone Requirements
+
+| Requirement          | Implementation                                            |
+| -------------------- | --------------------------------------------------------- |
+| AI Agent             | Google Antigravity Agent                                  |
+| MCP Server           | Custom FastMCP Server                                     |
+| Local Tool Calling   | SQLite via MCP                                            |
+| Offline Support      | Rule-based fallback processor                             |
+| Privacy              | Local-only storage                                        |
+| Multi-step Workflows | Medication scheduling, symptom logging, safety validation |
+
+---
+
+# 🚀 Getting Started
+
+## Prerequisites
+
+* Python 3.10+
+* pip
+
+Install dependencies:
 
 ```bash
 pip install fastapi uvicorn mcp google-antigravity
 ```
 
-### Running the Application
+---
 
-**1. Start the FastAPI Server:**
+## Run the Application
+
+Start the backend server:
 
 ```bash
-python3 backend/main.py
+python backend/main.py
 ```
-<img width="1470" height="814" alt="Image" src="https://github.com/user-attachments/assets/e8835483-e9fc-4fd0-a5b1-8d16bf29b56d" />
 
-<img width="1469" height="808" alt="Image" src="https://github.com/user-attachments/assets/fddf0536-087c-4b4e-84b4-32af11f6408f" />
+The application automatically:
 
-<img width="1468" height="804" alt="Image" src="https://github.com/user-attachments/assets/e775e31c-bc72-4191-9ab3-e53b5364749f" />
+* Creates the SQLite database
+* Seeds sample data
+* Starts the FastAPI server
 
-<img width="1470" height="806" alt="Image" src="https://github.com/user-attachments/assets/eb2f9856-ca08-447f-8ede-6dc5b0c77099" />
-
-<img width="1470" height="807" alt="Image" src="https://github.com/user-attachments/assets/fffc3e94-8f77-4421-b756-545d8c68a3d5" />
-> This automatically initializes the SQLite database schema and seeds sample profiles on startup.
-
-**2. Access the Dashboard:**
-
-Open your browser and navigate to:
+Open:
 
 ```
 http://localhost:8000
 ```
 
-### Optional: Running with Gemini API Key
+---
 
-To run with the live Google Antigravity Agent, set your API key in the environment before starting the server:
+# 🌐 Optional: Enable Gemini
+
+To use the live Google Antigravity Agent:
 
 ```bash
-export GEMINI_API_KEY="your-api-key-here"
-python3 backend/main.py
+export GEMINI_API_KEY="YOUR_API_KEY"
+
+python backend/main.py
 ```
 
-If the environment variable is not set, MedSafe AI **gracefully falls back to its offline parsing processor**, meaning all features — checklist, forms, safety warning alerts, symptom tracking, symptom lookup, and dashboard navigation — remain fully operational and testable.
+If no API key is provided, MedSafe AI automatically switches to its offline rule-based engine, allowing all major features—including medication scheduling, symptom logging, safety validation, and dashboard interactions—to continue working without internet access.
+
+---
+
+# 📷 Application Preview
+
+> Add your screenshots below.
+
+### Dashboard
+
+![Dashboard](images/dashboard.png)
+
+### Medication Checklist
+
+![Checklist](images/checklist.png)
+
+### Drug Interaction Warning
+
+![Warning](images/warning.png)
+
+### Symptom Correlation Chart
+
+![Chart](images/chart.png)
+
+### Doctor Report
+
+![Report](images/report.png)
+
+---
+
+# 🌟 Highlights
+
+* ✅ Local-First Architecture
+* ✅ Privacy by Design
+* ✅ AI Agent + MCP Integration
+* ✅ Offline Functionality
+* ✅ Clinical Safety Checks
+* ✅ Drug Interaction Detection
+* ✅ Allergy Validation
+* ✅ Symptom Correlation Analytics
+* ✅ Printable Doctor Reports
+
+---
+
+# 📜 License
+
+This project was developed as part of the **Kaggle 5-Day Generative AI Intensive Course Capstone**.
+
+For educational and demonstration purposes only.
+
+**Disclaimer:** MedSafe AI is not a substitute for professional medical advice, diagnosis, or treatment. Always consult a qualified healthcare professional before starting, stopping, or changing any medication.
