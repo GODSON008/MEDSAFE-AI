@@ -313,7 +313,7 @@ If no API key is provided, MedSafe AI automatically switches to its offline rule
 
 ### Medication Checklist
 
-![Checklist](images/checklist.png)
+<img width="1469" height="808" alt="Image" src="https://github.com/user-attachments/assets/fddf0536-087c-4b4e-84b4-32af11f6408f" />
 
 ### Drug Interaction Warning
 
