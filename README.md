@@ -309,7 +309,7 @@ If no API key is provided, MedSafe AI automatically switches to its offline rule
 
 ### Dashboard
 
-![Dashboard](images/dashboard.png)
+<img width="1470" height="814" alt="Image" src="https://github.com/user-attachments/assets/e8835483-e9fc-4fd0-a5b1-8d16bf29b56d" />
 
 ### Medication Checklist
 
