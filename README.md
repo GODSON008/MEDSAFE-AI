@@ -100,7 +100,13 @@ pip install fastapi uvicorn mcp google-antigravity
 ```bash
 python3 backend/main.py
 ```
+<img width="1469" height="808" alt="Image" src="https://github.com/user-attachments/assets/fddf0536-087c-4b4e-84b4-32af11f6408f" />
 
+<img width="1468" height="804" alt="Image" src="https://github.com/user-attachments/assets/e775e31c-bc72-4191-9ab3-e53b5364749f" />
+
+<img width="1470" height="806" alt="Image" src="https://github.com/user-attachments/assets/eb2f9856-ca08-447f-8ede-6dc5b0c77099" />
+
+<img width="1470" height="807" alt="Image" src="https://github.com/user-attachments/assets/fffc3e94-8f77-4421-b756-545d8c68a3d5" />
 > This automatically initializes the SQLite database schema and seeds sample profiles on startup.
 
 **2. Access the Dashboard:**
