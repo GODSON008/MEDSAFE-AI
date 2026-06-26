@@ -100,6 +100,8 @@ pip install fastapi uvicorn mcp google-antigravity
 ```bash
 python3 backend/main.py
 ```
+<img width="1470" height="814" alt="Image" src="https://github.com/user-attachments/assets/e8835483-e9fc-4fd0-a5b1-8d16bf29b56d" />
+
 <img width="1469" height="808" alt="Image" src="https://github.com/user-attachments/assets/fddf0536-087c-4b4e-84b4-32af11f6408f" />
 
 <img width="1468" height="804" alt="Image" src="https://github.com/user-attachments/assets/e775e31c-bc72-4191-9ab3-e53b5364749f" />
