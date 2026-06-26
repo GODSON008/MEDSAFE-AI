@@ -317,15 +317,15 @@ If no API key is provided, MedSafe AI automatically switches to its offline rule
 
 ### Drug Interaction Warning
 
-![Warning](images/warning.png)
+<img width="1468" height="804" alt="Image" src="https://github.com/user-attachments/assets/e775e31c-bc72-4191-9ab3-e53b5364749f" />
 
 ### Symptom Correlation Chart
 
-![Chart](images/chart.png)
+<img width="1470" height="806" alt="Image" src="https://github.com/user-attachments/assets/eb2f9856-ca08-447f-8ede-6dc5b0c77099" />
 
 ### Doctor Report
 
-![Report](images/report.png)
+<img width="1470" height="807" alt="Image" src="https://github.com/user-attachments/assets/fffc3e94-8f77-4421-b756-545d8c68a3d5" />
 
 ---
 
