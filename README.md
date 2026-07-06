@@ -1,4 +1,4 @@
-# 💊 MedSafe AI - Privacy-First Medication Management & Clinical Safety Assistant
+# 💊 MedSafe AI - Privacy , Medication Management & Clinical Safety Assistant
 
 > **Kaggle 5-Day AI Agents Capstone Project**
 > **Track:** Concierge Agents
