@@ -1,0 +1,67 @@
+{
+  "allergy_classes": {
+    "Penicillin": ["Penicillin", "Amoxicillin", "Ampicillin", "Piperacillin", "Penicillin V", "Penicillin G", "Augmentin"],
+    "Sulfa Drugs": ["Bactrim", "Sulfamethoxazole", "Sulfasalazine", "Septra"],
+    "NSAIDs": ["Aspirin", "Ibuprofen", "Naproxen", "Ketorolac", "Advil", "Aleve", "Motrin"]
+  },
+  "drug_interactions": [
+    {
+      "drugs": ["Aspirin", "Warfarin"],
+      "severity": "High",
+      "warning": "High risk of bleeding. Both act as blood thinners (antiplatelet and anticoagulant)."
+    },
+    {
+      "drugs": ["Ibuprofen", "Warfarin"],
+      "severity": "High",
+      "warning": "Increased risk of gastrointestinal bleeding and ulcers. Ibuprofen inhibits platelets and irritates stomach lining."
+    },
+    {
+      "drugs": ["Lisinopril", "Spironolactone"],
+      "severity": "Medium",
+      "warning": "Risk of hyperkalemia (dangerously high potassium levels in blood). Both drugs conserve potassium."
+    },
+    {
+      "drugs": ["Sildenafil", "Nitroglycerin"],
+      "severity": "High",
+      "warning": "Dangerously low blood pressure (severe hypotension). Sildenafil enhances the vasodilatory effect of nitrates."
+    },
+    {
+      "drugs": ["Simvastatin", "Amlodipine"],
+      "severity": "Medium",
+      "warning": "Amlodipine increases Simvastatin concentration, elevating risk of muscle damage (myopathy/rhabdomyolysis). Limit Simvastatin to max 20mg."
+    },
+    {
+      "drugs": ["Digoxin", "Amiodarone"],
+      "severity": "High",
+      "warning": "Amiodarone increases Digoxin levels by reducing its clearance, leading to potential Digoxin toxicity (arrhythmias, nausea)."
+    },
+    {
+      "drugs": ["Clopidogrel", "Omeprazole"],
+      "severity": "Medium",
+      "warning": "Omeprazole inhibits the CYP2C19 enzyme which is required to activate Clopidogrel, reducing its antiplatelet effectiveness."
+    }
+  ],
+  "symptom_medications": {
+    "headache": ["Acetaminophen (Tylenol)", "Ibuprofen (Advil)"],
+    "migraine": ["Ibuprofen (Advil)", "Sumatriptan (Imitrex)"],
+    "fever": ["Acetaminophen (Tylenol)", "Ibuprofen (Advil)"],
+    "acid reflux": ["Omeprazole (Prilosec)", "Famotidine (Pepcid)"],
+    "heartburn": ["Omeprazole (Prilosec)", "Famotidine (Pepcid)"],
+    "allergy": ["Cetirizine (Zyrtec)", "Loratadine (Claritin)"],
+    "sneezing": ["Cetirizine (Zyrtec)", "Loratadine (Claritin)"],
+    "runny nose": ["Cetirizine (Zyrtec)", "Loratadine (Claritin)"],
+    "cough": ["Dextromethorphan (Robitussin)", "Guaifenesin (Mucinex)"],
+    "nausea": ["Ondansetron (Zofran)", "Bismuth Subsalicylate (Pepto-Bismol)"],
+    "vomiting": ["Ondansetron (Zofran)", "Bismuth Subsalicylate (Pepto-Bismol)"],
+    "muscle pain": ["Ibuprofen (Advil)", "Naproxen (Aleve)"],
+    "diarrhea": ["Loperamide (Imodium)"],
+    "constipation": ["Polyethylene Glycol (MiraLAX)", "Senna (Senokot)"],
+    "jaundice": ["Ursodiol (Actigall)"],
+    "leg pain": ["Ibuprofen (Advil)", "Naproxen (Aleve)"],
+    "stomach pain": ["Dicyclomine (Bentyl)", "Bismuth Subsalicylate (Pepto-Bismol)"],
+    "back pain": ["Ibuprofen (Advil)", "Naproxen (Aleve)", "Acetaminophen (Tylenol)"],
+    "chest pain": ["Aspirin"],
+    "cold": ["Phenylephrine (Sudafed PE)", "Dextromethorphan (Robitussin)"],
+    "sore throat": ["Acetaminophen (Tylenol)", "Ibuprofen (Advil)"]
+  }
+}

@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSafe AI - Local-First Health Assistant</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Outfit:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for correlation graph -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Identity Services (for Google Sign-In) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link rel="stylesheet" href="styles.css?v=9">
+</head>
+<body>
+    <!-- Login Screen & Pill Animation Overlay -->
+    <div id="login-screen-overlay">
+        <!-- Interactive Moving Decorations Layer -->
+        <div id="login-bg-decorations" class="auth-bg-decorations"></div>
+        <!-- Giant Scaling Stethoscope Reveal -->
+        <div id="intro-stethoscope" class="intro-stethoscope">
+            <i data-lucide="stethoscope"></i>
+        </div>
+        <!-- Stage 1: Pill Splitting Animation (Hidden by default to prevent stuck screen) -->
+        <div class="intro-stage" id="intro-stage" style="display: none;">
+            <div class="pill-animation-container" id="pill-anim-container">
+                <div class="pill-piece pill-left"></div>
+                <div class="pill-piece pill-middle"></div>
+                <div class="pill-piece pill-right"></div>
+            </div>
+            <h2 class="intro-title">MedSafe AI</h2>
+        </div>
+
+        <!-- Stage 2: Glassmorphic Auth Form -->
+        <div class="auth-stage active" id="auth-stage">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="auth-logo">
+                        <i data-lucide="shield-check"></i>
+                        <span>MedSafe <span style="color: var(--primary-cyan);">AI</span></span>
+                    </div>
+                    <p class="auth-subtitle" id="auth-card-subtitle">Secure Health Assistant</p>
+                </div>
+
+                <!-- Role Selector Tabs: Patient vs Doctor -->
+                <div class="auth-role-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(0,0,0,0.25); padding: 4px; border-radius: var(--border-radius-sm); border: 1px solid rgba(255,255,255,0.08);">
+                    <button type="button" class="auth-role-tab active" id="tab-role-patient" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: none; background: var(--accent-color, #0066cc); color: white; font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                        <i data-lucide="user" style="width: 15px; height: 15px;"></i> Patient Access
+                    </button>
+                    <button type="button" class="auth-role-tab" id="tab-role-doctor" style="flex: 1; padding: 8px 12px; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s;">
+                        <i data-lucide="stethoscope" style="width: 15px; height: 15px;"></i> Doctor Portal
+                    </button>
+                </div>
+
+                <!-- Patient Auth Section -->
+                <div id="patient-auth-section">
+                    <!-- Google Sign-In Button -->
+                    <div id="google-signin-container" style="margin-bottom: 0;">
+                        <button id="btn-google-signin" class="btn-google-signin" type="button">
+                            <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0;">
+                                <path fill="#4285F4" d="M16.51 8H8.98v3h4.3c-.18 1-.74 1.48-1.6 2.04v2.01h2.6a7.8 7.8 0 0 0 2.38-5.88c0-.57-.05-.66-.15-1.18z"/>
+                                <path fill="#34A853" d="M8.98 17c2.16 0 3.97-.72 5.3-1.94l-2.6-2a4.8 4.8 0 0 1-7.18-2.54H1.83v2.07A8 8 0 0 0 8.98 17z"/>
+                                <path fill="#FBBC05" d="M4.5 10.52a4.8 4.8 0 0 1 0-3.04V5.41H1.83a8 8 0 0 0 0 7.18l2.67-2.07z"/>
+                                <path fill="#EA4335" d="M8.98 4.18c1.17 0 2.23.4 3.06 1.2l2.3-2.3A8 8 0 0 0 1.83 5.4L4.5 7.49a4.77 4.77 0 0 1 4.48-3.3z"/>
+                            </svg>
+                            <span>Continue with Google</span>
+                        </button>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="auth-divider">
+                        <span class="auth-divider-line"></span>
+                        <span class="auth-divider-text">or use email</span>
+                        <span class="auth-divider-line"></span>
+                    </div>
+
+                    <!-- Local Email/Password Form -->
+                    <form id="auth-form" autocomplete="off" onsubmit="return false;">
+                        <div class="auth-form-group" id="group-username" style="display: none;">
+                            <label for="auth-username">Full Name</label>
+                            <div class="auth-input-wrapper">
+                                <i data-lucide="user"></i>
+                                <input type="text" id="auth-username" autocomplete="off" placeholder="e.g. John Doe">
+                            </div>
+                        </div>
+
+                        <div class="auth-form-group">
+                            <label for="auth-email">Email Address</label>
+                            <div class="auth-input-wrapper">
+                                <i data-lucide="mail"></i>
+                                <input type="text" id="auth-email" autocomplete="off" required placeholder="name@example.com">
+                            </div>
+                        </div>
+
+                        <div class="auth-form-group">
+                            <label for="auth-password">Password <span id="password-hint" style="font-weight:400; color: var(--text-muted); font-size:11px;">(min. 8 characters)</span></label>
+                            <div class="auth-input-wrapper">
+                                <i data-lucide="lock"></i>
+                                <input type="password" id="auth-password" autocomplete="new-password" required placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="auth-error" id="auth-error-msg">
+                            <i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i>
+                            <span id="error-text">Invalid credentials.</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary auth-action-btn" id="btn-auth-submit">
+                            <span>Login Securely</span>
+                            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </form>
+
+                    <div class="auth-toggle-link">
+                        <span id="toggle-label-text">Don't have an account?</span> 
+                        <a href="#" id="link-toggle-auth">Register</a>
+                    </div>
+
+                    <button class="auth-guest-btn" id="btn-auth-guest">Continue as Guest (No Password)</button>
+                </div>
+
+                <!-- Doctor Auth Section (Hidden by default) -->
+                <div id="doctor-auth-section" style="display: none;">
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(14, 165, 233, 0.15); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                            <i data-lucide="stethoscope" style="width: 24px; height: 24px;"></i>
+                        </div>
+                        <h3 style="color: var(--text-primary); font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">Doctor Login Portal</h3>
+                        <p style="color: var(--text-secondary); font-size: 12px; line-height: 1.4;">Sign in with your Doctor Email to manage your patients list & view records.</p>
+                    </div>
+
+                    <form id="doctor-auth-form" autocomplete="off" onsubmit="return false;">
+                        <div class="auth-form-group">
+                            <label for="doctor-email">Doctor Email Address</label>
+                            <div class="auth-input-wrapper">
+                                <i data-lucide="mail"></i>
+                                <input type="email" id="doctor-email" autocomplete="off" required placeholder="doctor@hospital.com">
+                            </div>
+                        </div>
+
+                        <div class="auth-form-group">
+                            <label for="doctor-password">Password</label>
+                            <div class="auth-input-wrapper">
+                                <i data-lucide="lock"></i>
+                                <input type="password" id="doctor-password" autocomplete="new-password" required placeholder="••••••••">
+                            </div>
+                        </div>
+
+                        <div class="auth-error" id="doctor-auth-error-msg" style="display: none;">
+                            <i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i>
+                            <span id="doctor-error-text">Invalid Doctor Email or Password.</span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary auth-action-btn" id="btn-doctor-submit" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                            <span>Sign In to Doctor Workspace</span>
+                            <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-area">
+                    <i data-lucide="shield-check" class="logo-icon"></i>
+                    <span class="logo-text">MedSafe <span class="accent-text">AI</span></span>
+                </div>
+                <div class="status-indicator">
+                    <span class="pulse-dot"></span>
+                    <span class="status-label">Local DB Secure</span>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <button class="nav-item doctor-only-nav" data-tab="doctor-workspace" style="display: none; background: rgba(14, 165, 233, 0.2); border: 1px solid rgba(14, 165, 233, 0.4); color: #38bdf8; font-weight: 700;">
+                    <i data-lucide="stethoscope"></i>
+                    <span>Doctor Workspace</span>
+                </button>
+                <button class="nav-item active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="checklist">
+                    <i data-lucide="calendar-check-2"></i>
+                    <span>Daily Checklist</span>
+                </button>
+                <button class="nav-item" data-tab="medications">
+                    <i data-lucide="pill"></i>
+                    <span>Meds & Safety</span>
+                </button>
+                <button class="nav-item" data-tab="symptoms">
+                    <i data-lucide="activity"></i>
+                    <span>Symptom Tracker</span>
+                </button>
+                <button class="nav-item" data-tab="reports">
+                    <i data-lucide="file-text"></i>
+                    <span>Doctor Reports</span>
+                </button>
+                <button class="nav-item" data-tab="lab-reports">
+                    <i data-lucide="flask"></i>
+                    <span>Lab Reports</span>
+                </button>
+                <button class="nav-item chat-nav-btn" data-tab="chat">
+                    <i data-lucide="bot"></i>
+                    <span>Chat with MedSafe</span>
+                </button>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="user-badge">
+                    <div class="avatar" id="sidebar-avatar">U</div>
+                    <div class="user-info">
+                        <div class="user-name" id="sidebar-user-name">Patient Profile</div>
+                        <div class="user-status" id="sidebar-user-status">Self-Managed</div>
+                    </div>
+                </div>
+                <div class="theme-toggle-container">
+                    <span class="theme-toggle-label">Interface Theme</span>
+                    <button class="btn-theme-toggle" id="btn-theme-toggle" title="Switch Theme">
+                        <i data-lucide="sun" id="theme-toggle-icon-sun"></i>
+                        <i data-lucide="moon" id="theme-toggle-icon-moon" style="display: none;"></i>
+                    </button>
+                </div>
+                
+                <div class="logout-container">
+                    <button class="btn-logout" id="btn-logout-sidebar">
+                        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i>
+                        <span>Logout Session</span>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Dashboard Viewport -->
+        <main class="main-content">
+            <!-- Doctor Mode Active Banner -->
+            <div id="doctor-mode-banner" style="display: none; background: linear-gradient(90deg, #0284c7, #0369a1); color: white; padding: 10px 20px; align-items: center; justify-content: space-between; font-size: 13.5px; font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.2);">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i data-lucide="stethoscope" style="width: 20px; height: 20px; color: #7dd3fc;"></i>
+                    <span>DOCTOR ACCESS MODE — Viewing Patient: <strong id="doctor-banner-patient-name">Patient</strong> (<span id="doctor-banner-patient-id">MED-1001</span>)</span>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button class="btn btn-secondary btn-sm" id="btn-back-to-doctor-workspace" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); color: white; border-radius: 4px; padding: 4px 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="arrow-left" style="width: 14px; height: 14px;"></i> Return to My Patients List
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="btn-exit-doctor-mode" style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.5); color: white; border-radius: 4px; padding: 4px 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                        <i data-lucide="log-out" style="width: 14px; height: 14px;"></i> Exit Doctor Portal
+                    </button>
+                </div>
+            </div>
+
+            <!-- Top Bar -->
+            <header class="top-bar">
+                <div class="page-title-section" style="display: flex; flex-direction: column; justify-content: center;">
+                    <div style="display: flex; align-items: center;">
+                        <button class="btn-sidebar-toggle" id="btn-sidebar-toggle" style="background: none; border: none; color: var(--text-primary); cursor: pointer; display: none; align-items: center; justify-content: center; padding: 4px; margin-right: 12px;" title="Toggle Navigation Menu">
+                            <i data-lucide="menu" style="width: 24px; height: 24px;"></i>
+                        </button>
+                        <h1 id="current-page-title">Dashboard Overview</h1>
+                        <div id="patient-id-badge-container" style="margin-left: 14px; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 20px; background: rgba(14, 165, 233, 0.12); border: 1px solid rgba(14, 165, 233, 0.25); color: #38bdf8; font-size: 12px; font-weight: 600;">
+                            <i data-lucide="id-card" style="width: 14px; height: 14px;"></i>
+                            <span id="header-patient-id">ID: MED-1001</span>
+                        </div>
+                    </div>
+                    <div id="dash-patient-subheading" style="margin-top: 4px; font-size: 14px; font-weight: 800; color: #38bdf8; letter-spacing: 0.03em;">PATIENT: <span id="dash-patient-subheading-name" style="color: #ffffff; text-transform: uppercase; font-weight: 900; font-size: 15px;">PATIENT</span></div>
+                </div>
+                <div class="quick-stats-bar">
+                    <div class="quick-stat">
+                        <i data-lucide="check-circle" class="emerald-text"></i>
+                        <div>
+                            <span class="stat-num" id="stat-compliance-rate">0%</span>
+                            <span class="stat-lbl">Compliance</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat">
+                        <i data-lucide="alert-triangle" class="amber-text"></i>
+                        <div>
+                            <span class="stat-num" id="stat-allergies-count">0</span>
+                            <span class="stat-lbl">Allergies Active</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat" id="stat-reminders-toggle" style="cursor: pointer; transition: transform 0.2s ease;" title="Click to test system alarm notification">
+                        <i data-lucide="bell" id="reminder-bell-icon" class="cyan-text"></i>
+                        <div>
+                            <span class="stat-num" id="stat-reminders-status" style="font-size: 13px;">Alarms</span>
+                            <span class="stat-lbl">10m Reminders</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Full Dashboard View for Doctor Workspace -->
+            <section id="tab-doctor-workspace" class="tab-pane" style="display: none;">
+                <div style="margin-bottom: 24px; padding: 24px; background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(3, 105, 161, 0.25)); border: 1px solid rgba(14, 165, 233, 0.3); border-radius: var(--border-radius-lg); backdrop-filter: blur(12px);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 700; box-shadow: 0 0 20px rgba(14,165,233,0.4);">
+                                🩺
+                            </div>
+                            <div>
+                                <h2 style="margin: 0; font-size: 1.4rem; font-weight: 700; color: var(--text-primary);" id="page-doc-workspace-title">Doctor Portal Workspace</h2>
+                                <p style="margin: 4px 0 0 0; color: var(--text-secondary); font-size: 13px;" id="page-doc-workspace-subtitle">Welcome Dr. Physician | Manage your assigned patients list & search patient records</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 12px; align-items: center;">
+                            <span id="page-my-patients-count-badge" style="font-size: 13px; font-weight: 700; background: rgba(14, 165, 233, 0.25); border: 1px solid #38bdf8; color: #38bdf8; padding: 6px 14px; border-radius: 20px; display: inline-flex; align-items: center; gap: 6px;">
+                                <i data-lucide="users" style="width: 16px; height: 16px;"></i> <span id="page-patients-count-text">0 Patients Saved</span>
+                            </span>
+                            <button class="btn btn-secondary" id="btn-page-doctor-logout" style="background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-weight: 600;">
+                                <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Logout Doctor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Doctor Workspace Main Content Grid -->
+                <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 24px;">
+                    <!-- Left Column: Patient Search Panel -->
+                    <div class="glass-card" style="padding: 24px;">
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="search" style="color: #38bdf8; width: 20px; height: 20px;"></i> Search Patient Database
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.4;">Enter a Patient ID (e.g. <strong>MED-1001</strong>) or Patient Name to search system records and add them with <strong>+</strong> button.</p>
+
+                        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                            <div style="flex-grow: 1; position: relative;">
+                                <i data-lucide="search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted);"></i>
+                                <input type="text" id="page-input-search-patient-id" placeholder="Enter Patient ID (MED-1001) or Name..." style="width: 100%; padding: 12px 14px 12px 42px; border-radius: var(--border-radius-sm); border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 14px;">
+                            </div>
+                            <button class="btn btn-primary" id="page-btn-search-patient" style="padding: 0 20px; font-weight: 600; background: linear-gradient(135deg, #0ea5e9, #0284c7);">Search</button>
+                        </div>
+
+                        <!-- Search Results Display Area -->
+                        <div id="page-patient-search-results-area" style="display: none; padding: 16px; background: rgba(0,0,0,0.2); border-radius: var(--border-radius-sm); border: 1px solid rgba(14, 165, 233, 0.25);">
+                            <h4 style="font-size: 12px; font-weight: 700; color: #38bdf8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px;">Search Results</h4>
+                            <div id="page-search-results-list" style="display: flex; flex-direction: column; gap: 10px;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: My Patients Saved List Panel -->
+                    <div class="glass-card" style="padding: 24px;">
+                        <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="folder-heart" style="color: #38bdf8; width: 20px; height: 20px;"></i> My Saved Patients List
+                        </h3>
+                        <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 16px; line-height: 1.4;">Click <strong>Unlock Records</strong> on any patient to enter patient password and open their full dashboard.</p>
+
+                        <div id="page-my-patients-list-container" style="display: flex; flex-direction: column; gap: 12px; max-height: 520px; overflow-y: auto; padding-right: 4px;">
+                            <p style="color: var(--text-muted); font-style: italic; font-size: 13.5px; text-align: center; margin: 40px 0;">No patients added to your saved list yet. Use the search panel on the left to find patients and click + to add them.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Dashboard Tab (Home) -->
+            <section id="tab-dashboard" class="tab-pane">
+                <div class="welcome-banner glass-card">
+                    <div class="welcome-text">
+                        <h2>Welcome back, health security is active.</h2>
+                        <p>MedSafe AI operates entirely offline. All health, compliance checklists, and symptom records never leave this computer.</p>
+                    </div>
+                    <div class="shield-graphic">
+                        <i data-lucide="shield-alert"></i>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Gauge widget -->
+                    <div class="dashboard-card glass-card span-1">
+                        <h3>Medication Compliance</h3>
+                        <div class="compliance-circle-container">
+                            <svg class="progress-ring" width="160" height="160">
+                                <circle class="progress-ring__background" stroke="#222530" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
+                                <circle class="progress-ring__circle" id="compliance-ring" stroke="var(--emerald-cyan)" stroke-width="12" fill="transparent" r="70" cx="80" cy="80"/>
+                            </svg>
+                            <div class="compliance-text">
+                                <span class="compliance-percent" id="dash-compliance-rate">0%</span>
+                                <span class="compliance-label">taken today</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Today's Checklist Summary -->
+                    <div class="dashboard-card glass-card span-2">
+                        <div class="card-header-actions">
+                            <h3>Scheduled Doses Today</h3>
+                            <button class="btn-text" onclick="switchTab('checklist')">View Checklist <i data-lucide="arrow-right"></i></button>
+                        </div>
+                        <div class="dash-checklist-list" id="dash-today-checklist">
+                            <!-- Items loaded dynamically -->
+                            <div class="loading-spinner"></div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Symptoms overview -->
+                    <div class="dashboard-card glass-card span-2">
+                        <div class="card-header-actions">
+                            <h3>Recent Symptoms</h3>
+                            <button class="btn-text" onclick="switchTab('symptoms')">Log Symptom <i data-lucide="plus"></i></button>
+                        </div>
+                        <div class="dash-symptoms-list" id="dash-recent-symptoms">
+                            <!-- Loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Daily Checklist Tab -->
+            <section id="tab-checklist" class="tab-pane">
+                <div class="checklist-header glass-card" style="display:flex; flex-direction:column; gap:16px; padding:20px 24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i data-lucide="calendar" style="width:20px; height:20px; color:#38bdf8;"></i>
+                            <span style="font-weight:600; font-size:0.95rem;">6-Month Daily Adherence History</span>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                            <button class="btn btn-secondary btn-sm" id="btn-checklist-prev-week" onclick="navigateChecklistDate(-7)" title="Previous 7 Days" style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px;">
+                                <i data-lucide="chevron-left" style="width:16px; height:16px;"></i> Prev
+                            </button>
+                            <button class="btn btn-secondary btn-sm" id="btn-checklist-today" onclick="jumpChecklistToday()" style="padding:6px 12px; font-weight:600;">Today</button>
+                            <button class="btn btn-secondary btn-sm" id="btn-checklist-next-week" onclick="navigateChecklistDate(7)" title="Next 7 Days" style="display:inline-flex; align-items:center; gap:4px; padding:6px 12px;">
+                                Next <i data-lucide="chevron-right" style="width:16px; height:16px;"></i>
+                            </button>
+                            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.15); border-radius:var(--border-radius-sm); padding:4px 10px;">
+                                <label for="checklist-date-picker" style="font-size:12px; color:var(--text-secondary); white-space:nowrap;">Jump to:</label>
+                                <input type="date" id="checklist-date-picker" style="background:transparent; border:none; font-family:inherit; font-size:13px; font-weight:600; outline:none; cursor:pointer;">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="calendar-bar" id="checklist-calendar-bar">
+                        <!-- Generates 7 days centered on selected date -->
+                    </div>
+                </div>
+                
+                <div class="checklist-container">
+                    <div class="checklist-column glass-card">
+                        <div class="column-header">
+                            <i data-lucide="clock"></i>
+                            <h3 id="checklist-date-title">Medication Adherence Checklist</h3>
+                        </div>
+                        <div class="checklist-doses-group" id="checklist-doses-list">
+                            <!-- Populated dynamically -->
+                            <p class="empty-state">Select a day or add medications to start tracking adherence.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Medications & Safety Tab -->
+            <section id="tab-medications" class="tab-pane">
+                <div class="meds-layout-grid">
+                    <!-- Left Column: Medications List -->
+                    <div class="meds-list-container glass-card">
+                        <div class="card-header-actions">
+                            <h3>Active Medications</h3>
+                            <i data-lucide="pill"></i>
+                        </div>
+                        <div class="meds-card-grid" id="medications-grid-list">
+                            <!-- Dynamically Loaded -->
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Add Med & Allergy Management -->
+                    <div class="meds-sidebar">
+                        <!-- Add Med Form -->
+                        <div class="form-card glass-card">
+                            <h3>Schedule Medication</h3>
+                            <form id="add-medication-form" class="form-fields">
+                                <div class="field-group">
+                                    <label for="med-name">Medication Name</label>
+                                    <input type="text" id="med-name" placeholder="e.g. Lisinopril" required>
+                                </div>
+                                <div class="field-row">
+                                    <div class="field-group">
+                                        <label for="med-dosage">Dosage</label>
+                                        <input type="text" id="med-dosage" placeholder="e.g. 10mg" required>
+                                    </div>
+                                    <div class="field-group">
+                                        <label for="med-time">Time of Day</label>
+                                        <input type="time" id="med-time" value="08:00" required>
+                                    </div>
+                                </div>
+                                <div class="field-row">
+                                    <div class="field-group">
+                                        <label for="med-frequency">Frequency</label>
+                                        <select id="med-frequency">
+                                            <option value="daily">Daily</option>
+                                            <option value="twice a day">Twice a day</option>
+                                            <option value="every morning">Every morning</option>
+                                            <option value="every evening">Every evening</option>
+                                        </select>
+                                    </div>
+                                    <div class="field-group">
+                                        <label for="med-desc">Instructions</label>
+                                        <input type="text" id="med-desc" placeholder="e.g. Take with food" value="every morning">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Schedule Dose <i data-lucide="calendar-plus"></i></button>
+                            </form>
+                        </div>
+
+                        <!-- Allergy Profile -->
+                        <div class="form-card glass-card">
+                            <h3>Active Allergy Profile</h3>
+                            <p class="form-desc">Adding medications belonging to these drug families will trigger safety warnings.</p>
+                            <div class="allergies-chips-area" id="allergies-chips-container">
+                                <!-- Chips loaded dynamically -->
+                            </div>
+                            <div class="add-allergy-row">
+                                <input type="text" id="new-allergy-name" placeholder="e.g. Penicillin...">
+                                <button class="btn btn-secondary btn-icon" id="btn-add-allergy"><i data-lucide="plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Symptom Tracker Tab -->
+            <section id="tab-symptoms" class="tab-pane">
+                <div class="symptoms-grid">
+                    <!-- Left Column: Logging & Lookup -->
+                    <div class="symptoms-left-col">
+                        <div class="symptoms-form-container glass-card">
+                            <h3>Log Daily Symptoms</h3>
+                            <p class="form-desc">Record side effects or physical logs to track compliance correlation.</p>
+                            <form id="log-symptom-form" class="form-fields">
+                                <div class="field-group">
+                                    <label for="sym-desc">How are you feeling?</label>
+                                    <textarea id="sym-desc" placeholder="e.g. Dizzy after lunch, mild headache" rows="3" required></textarea>
+                                </div>
+                                <div class="field-group">
+                                    <label for="sym-severity">Severity: <span id="severity-val">5</span>/10</label>
+                                    <input type="range" id="sym-severity" min="1" max="10" value="5" class="slider">
+                                    <div class="slider-labels">
+                                        <span>Mild</span>
+                                        <span>Moderate</span>
+                                        <span>Severe</span>
+                                    </div>
+                                </div>
+                                <div class="field-group">
+                                    <label for="sym-correlation">Correlated Medication (Optional)</label>
+                                    <select id="sym-correlation">
+                                        <option value="">None (General Symptom)</option>
+                                        <!-- Options populated dynamically -->
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-full">Log Symptom <i data-lucide="stethoscope"></i></button>
+                            </form>
+                        </div>
+
+
+
+                        <!-- Nearest Medical Shops Card -->
+                        <div class="form-card glass-card" id="nearest-pharmacies-card" style="margin-top: 24px;">
+                            <h3>📍 Nearest Medical Shops</h3>
+                            <p class="form-desc">Auto-detect location or enter any 6-digit Indian Pincode / City to find nearby pharmacies.</p>
+                            
+                            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                <input type="text" id="input-pharmacy-location" placeholder="Enter 6-digit Pincode (e.g. 110001), City, or Area..." style="flex-grow: 1; padding: 9px 12px; border-radius: var(--border-radius-sm); border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3); color: var(--text-primary); font-size: 13px;">
+                                <button class="btn btn-secondary" id="btn-search-area-pharmacies" style="padding: 0 14px; font-size: 12px; font-weight: 600;">Search</button>
+                            </div>
+
+                            <button class="btn btn-primary" id="btn-find-pharmacies" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; background: linear-gradient(135deg, #0ea5e9, #0284c7); font-weight: 600;">
+                                <i data-lucide="map-pin"></i> Auto-Detect My Location (GPS)
+                            </button>
+                            <div id="pharmacies-result" style="margin-top: 14px; font-size: 12px; line-height: 1.4;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Correlation Chart & Recent History -->
+                    <div class="symptoms-history-container glass-card">
+                        <h3>Symptom-Medication Correlation</h3>
+                        <p class="card-desc">Matches your symptom severity events against scheduled medication doses taken.</p>
+                        <div class="chart-wrapper">
+                            <canvas id="correlationChart"></canvas>
+                        </div>
+                        
+                        <div class="symptoms-history-list">
+                            <h4>Recent Logs</h4>
+                            <div class="logs-timeline" id="symptoms-history-timeline">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Doctor Reports Tab -->
+            <section id="tab-reports" class="tab-pane">
+                <div class="reports-header glass-card" style="display:flex; justify-content:space-between; align-items:center; gap:24px; padding:28px 32px;">
+                    <div class="report-intro" style="display:flex; flex-direction:column; gap:8px;">
+                        <h3 style="margin:0; font-size:1.2rem; font-weight:700;">Doctor Visit Reports</h3>
+                        <p style="margin:0; color:var(--text-secondary); font-size:0.9rem; line-height:1.6; max-width:680px;">Generate a compliance sheet summarizing your daily logs and side effects over the past week. Hand this to your practitioner to optimize consultation.</p>
+                    </div>
+                    <div style="display:flex; gap:12px; align-items:center; flex-shrink:0;" class="no-print">
+                        <button class="btn btn-emerald-glow" id="btn-download-pdf-report" style="display:flex; align-items:center; gap:8px; white-space:nowrap;">Download Report <i data-lucide="file-down"></i></button>
+                    </div>
+                </div>
+
+                <!-- Report Sheet -->
+                <div class="report-sheet-container glass-card printable-report-card">
+                    <div class="report-header-print">
+                        <div class="report-logo">
+                            <i data-lucide="shield-check" class="logo-icon-print"></i>
+                            <span class="report-title">MedSafe AI clinical report</span>
+                        </div>
+                        <div class="report-meta" id="report-meta-info">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <hr class="report-divider">
+
+                    <div class="report-summary-stats">
+                        <div class="rep-stat-box">
+                            <span class="rep-stat-label">Medication Adherence Rate</span>
+                            <span class="rep-stat-value" id="report-adherence-rate">0%</span>
+                        </div>
+                        <div class="rep-stat-box">
+                            <span class="rep-stat-label">Doses Logged (Taken / Missed)</span>
+                            <span class="rep-stat-value" id="report-dose-counts">0 / 0</span>
+                        </div>
+                        <div class="rep-stat-box">
+                            <span class="rep-stat-label">Symptom Incidents Logged</span>
+                            <span class="rep-stat-value" id="report-symptom-count">0</span>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Active Medications &amp; Schedules</h3>
+                        <div class="table-responsive">
+                            <table class="report-table" id="report-meds-table">
+                                <thead>
+                                    <tr>
+                                        <th>Medication</th>
+                                        <th>Dosage</th>
+                                        <th>Schedule</th>
+                                        <th>Time of Day</th>
+                                        <th>Started</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Allergy Profile &amp; Safety Limits</h3>
+                        <div class="report-allergies-list" id="report-allergies-list">
+                            <!-- Loaded dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Recent Symptom Logs</h3>
+                        <div class="table-responsive">
+                            <table class="report-table" id="report-symptoms-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date/Time</th>
+                                        <th>Symptom Logged</th>
+                                        <th>Severity</th>
+                                        <th>Correlated Med</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="report-section">
+                        <h3>Detailed Adherence History</h3>
+                        <div class="table-responsive">
+                            <table class="report-table" id="report-adherence-table">
+                                <thead>
+                                    <tr>
+                                        <th>Scheduled Time</th>
+                                        <th>Medication</th>
+                                        <th>Dosage</th>
+                                        <th>Status</th>
+                                        <th>Actual Intake Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Loaded dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="report-section no-break" id="doctor-notes-section" style="margin-top: 24px; padding: 20px; border-radius: var(--border-radius-md); background: rgba(14, 165, 233, 0.04); border: 1px solid rgba(14, 165, 233, 0.2);">
+                        <h3 style="color: #38bdf8; font-weight: 700; font-size: 1.1rem; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                            <i data-lucide="clipboard-signature" style="width: 20px; height: 20px; color: #38bdf8;"></i> PHYSICIAN NOTES &amp; RECOMMENDATIONS
+                        </h3>
+                        <p class="form-desc no-print" style="margin-bottom: 12px; color: var(--text-secondary); font-size: 12.5px; line-height: 1.4;">Add clinical notes, dosage adjustments, or follow-up recommendations below. Click <strong>Send</strong> to add each recommendation as a point saved to the report.</p>
+                        <div class="no-print" style="display: flex; gap: 12px; align-items: flex-end; margin-bottom: 16px; width: 100%;">
+                            <textarea id="doctor-notes-textarea" placeholder="Enter clinical notes, dosage modifications, or follow-up instructions here..." style="flex-grow: 1; min-height: 80px; padding: 12px; border-radius: var(--border-radius-sm); border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25); color: var(--text-primary); font-family: inherit; font-size: 13px; line-height: 1.5; resize: vertical;" maxlength="1200"></textarea>
+                            <button class="btn btn-primary" id="btn-send-doctor-notes" style="height: 42px; display: flex; align-items: center; gap: 6px; padding: 0 18px; flex-shrink: 0; font-weight: 600;">
+                                Send <i data-lucide="send" style="width: 16px; height: 16px;"></i>
+                            </button>
+                        </div>
+
+                        <div id="doctor-notes-display-list" style="padding: 14px; border-radius: var(--border-radius-sm); background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.12); min-height: 50px; font-size: 13px; line-height: 1.6; color: var(--text-primary);">
+                            <p style="color: var(--text-muted); font-style: italic; margin: 0;">No notes added yet. Type above and click Send.</p>
+                        </div>
+                        <div id="doctor-notes-print-view" class="print-only-block" style="display: none;"></div>
+                    </div>
+
+                    <div class="report-footer-print">
+                        <p>Disclaimer: Prepared by MedSafe AI. This local report summarizes self-recorded user data. Ensure to verify all details with your clinician before altering dosage.</p>
+                        <p class="print-timestamp" id="report-printed-at"></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lab Reports Tab -->
+            <section id="tab-lab-reports" class="tab-pane">
+                <div class="lab-reports-container">
+                    <!-- Left: Upload Section -->
+                    <div class="lab-reports-left">
+                        <div class="glass-card upload-dropzone-card">
+                            <h3>Upload Lab Report or Blood Test</h3>
+                            <p class="section-subtitle">Drop files here or click to select. Supports all types of health reports.</p>
+                            
+                            <div class="dropzone-area" id="lab-report-dropzone">
+                                <i data-lucide="upload-cloud" class="dropzone-icon"></i>
+                                <span class="dropzone-text">Drag & drop your file here</span>
+                                <span class="dropzone-subtext">or click to browse files</span>
+                                <input type="file" id="lab-report-file-input" style="display:none">
+                            </div>
+                            
+                            <div class="upload-file-status" id="lab-report-file-status" style="display: none;">
+                                <div class="selected-file-info">
+                                    <i data-lucide="file-text"></i>
+                                    <span id="lab-selected-filename">filename.pdf</span>
+                                </div>
+                                <button type="button" class="btn-clear-file" id="btn-clear-lab-file">&times;</button>
+                            </div>
+                            
+                            <div class="field-group" style="margin-top: 16px;">
+                                <label for="lab-report-label">Report Name / Label</label>
+                                <input type="text" id="lab-report-label" placeholder="e.g. Annual Blood Work July 2026">
+                            </div>
+                            
+                            <button class="btn btn-primary btn-full" id="btn-upload-lab-report" style="margin-top: 16px;">
+                                <i data-lucide="upload"></i>
+                                <span>Upload Lab Report</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Reports History -->
+                    <div class="lab-reports-right glass-card">
+                        <h3>Uploaded Documents History</h3>
+                        <p class="section-subtitle">Select any report to view or download it.</p>
+                        
+                        <div class="lab-reports-history-list" id="lab-reports-history-list">
+                            <!-- Populated dynamically -->
+                            <div class="empty-reports-placeholder">
+                                <i data-lucide="folder-open"></i>
+                                <span>No laboratory reports uploaded yet.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Agent Chat Tab -->
+            <section id="tab-chat" class="tab-pane">
+                <div class="chat-layout">
+                    <!-- Conversation Area -->
+                    <div class="chat-messages-container glass-card">
+                        <div class="chat-header">
+                            <div class="chat-agent-badge">
+                                <div class="bot-avatar"><i data-lucide="bot"></i></div>
+                                <div>
+                                    <h4>MedSafe AI Assistant</h4>
+                                    <span class="chat-sub">Empathetic Safety Coordinator</span>
+                                </div>
+                            </div>
+                            <span class="shield-badge"><i data-lucide="shield-check"></i> Local-first Sandbox</span>
+                        </div>
+
+                        <!-- Messages Stream -->
+                        <div class="messages-stream" id="chat-messages-stream">
+                            <div class="message bot">
+                                <div class="msg-bubble">
+                                    Welcome to MedSafe AI! I can help you add medications, schedule daily adherence trackers, log symptoms, check allergies, and run interaction warnings. 
+                                    <br><br>
+                                    Try typing: <i>"I need to take Amoxicillin 500mg every morning"</i> or <i>"Add allergy to Penicillin"</i>. How can I support your safety today?
+                                </div>
+                                <span class="msg-time">Just now</span>
+                            </div>
+                        </div>
+
+                        <!-- Typing Loader -->
+                        <div class="typing-loader" id="chat-typing-loader">
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                            <span class="dot"></span>
+                        </div>
+
+                        <!-- Chat input -->
+                        <form id="chat-input-form" class="chat-input-bar">
+                            <input type="text" id="chat-input-message" placeholder="Ask MedSafe AI..." autocomplete="off">
+                            <button type="submit" class="btn btn-primary btn-icon"><i data-lucide="send"></i></button>
+                        </form>
+                    </div>
+
+                    <!-- Chat Sidebar (Suggestions) -->
+                    <div class="chat-sidebar glass-card">
+                        <h3>Ask MedSafe AI</h3>
+                        <p class="sidebar-info-text">Try these commands to interact with the multi-agent clinical rules system:</p>
+                        <div class="suggestion-list">
+                            <button class="suggestion-btn" data-prompt="I need to take Lisinopril 10mg every morning">
+                                <i data-lucide="plus-circle"></i>
+                                <span>Schedule Lisinopril 10mg every morning</span>
+                            </button>
+                            <button class="suggestion-btn" data-prompt="Add allergy to Penicillin">
+                                <i data-lucide="alert-triangle"></i>
+                                <span>Add allergy to Penicillin</span>
+                            </button>
+                            <button class="suggestion-btn" data-prompt="I need to take Amoxicillin 250mg every morning">
+                                <i data-lucide="shield-alert"></i>
+                                <span>Try adding Amoxicillin (Penicillin class)</span>
+                            </button>
+                            <button class="suggestion-btn" data-prompt="What medications am I taking?">
+                                <i data-lucide="pill"></i>
+                                <span>List my medications</span>
+                            </button>
+                            <button class="suggestion-btn" data-prompt="I feel dizzy, severity 4/10">
+                                <i data-lucide="activity"></i>
+                                <span>Log symptom: dizzy (severity 4)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Safety Warning Modal -->
+    <div class="modal-overlay" id="safety-modal">
+        <div class="modal-card glass-card alert-theme">
+            <div class="modal-icon">
+                <i data-lucide="shield-alert"></i>
+            </div>
+            <h2 id="modal-title">Clinical Safety Warnings</h2>
+            <div class="modal-content-area">
+                <p class="modal-desc">MedSafe AI clinical check triggered the following safety alerts for this medication:</p>
+                <ul class="modal-warnings-list" id="modal-warnings-list-items">
+                    <!-- Warning messages dynamically populated -->
+                </ul>
+                <p class="modal-question">Do you still wish to schedule this medication despite the warnings? Consult your doctor before taking new drugs.</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="btn-modal-cancel">Cancel & Go Back</button>
+                <button class="btn btn-danger" id="btn-modal-confirm">Confirm & Schedule Anyway</button>
+            </div>
+        </div>
+    </div>
+    <!-- Lab Report Analysis Modal -->
+    <div class="modal-overlay" id="lab-report-modal" style="display: none;">
+        <div class="modal-card glass-card lab-modal-card">
+            <div class="modal-header-nav">
+                <div class="modal-title-sec">
+                    <i data-lucide="file-text" class="modal-title-icon"></i>
+                    <h2 id="lab-modal-title">Lab Report Details</h2>
+                    <span id="lab-modal-date" class="modal-subtitle-date">Uploaded on YYYY-MM-DD</span>
+                </div>
+                <button type="button" class="modal-close-btn" id="btn-close-lab-modal">&times;</button>
+            </div>
+            
+            <div class="modal-content-scroll">
+                <div class="lab-modal-analysis-content" id="lab-modal-analysis-content">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+            
+            <div class="modal-actions" style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--glass-card-border);">
+                <button class="btn btn-primary" id="btn-close-lab-modal-bottom">Close Report</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Password Challenge Modal for Opening Patient Records -->
+    <div class="modal-overlay" id="patient-password-challenge-modal" style="display: none; z-index: 10001;">
+        <div class="modal-card glass-card" style="max-width: 440px; width: 90%; padding: 24px;">
+            <div style="text-align: center; margin-bottom: 16px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(14, 165, 233, 0.15); color: #38bdf8; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    <i data-lucide="key-round" style="width: 24px; height: 24px;"></i>
+                </div>
+                <h3 style="margin-bottom: 4px; font-size: 1.1rem; font-weight: 700;">Patient Verification</h3>
+                <p style="color: var(--text-secondary); font-size: 12.5px; line-height: 1.4;">Enter password for <strong id="challenge-patient-name" style="color:var(--text-primary);">Patient</strong> (<span id="challenge-patient-id" style="color:#38bdf8;">MED-1001</span>) to unlock dashboard.</p>
+            </div>
+
+            <form id="form-patient-password-challenge" autocomplete="off" onsubmit="return false;">
+                <div class="auth-form-group">
+                    <label for="challenge-password">Patient Password</label>
+                    <div class="auth-input-wrapper">
+                        <i data-lucide="lock"></i>
+                        <input type="password" id="challenge-password" required autocomplete="new-password" placeholder="Enter patient password...">
+                    </div>
+                </div>
+
+                <div class="auth-error" id="challenge-error-msg" style="display: none; margin-bottom: 12px;">
+                    <i data-lucide="alert-circle" style="width: 12px; height: 12px;"></i>
+                    <span id="challenge-error-text">Incorrect patient password.</span>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 16px;">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-challenge" style="flex: 1;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-challenge" style="flex: 1.5; font-weight: 600; background: linear-gradient(135deg, #0ea5e9, #0284c7);">
+                        <span>Unlock Dashboard</span>
+                        <i data-lucide="shield-check" style="width: 16px; height: 16px;"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app_v3.js?v=23"></script>
+</body>
+</html>

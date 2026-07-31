@@ -1,0 +1,20 @@
+# Environment & Secrets
+.env
+.env.local
+
+# Python Cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+backend/__pycache__/
+
+# OS System Files
+.DS_Store
+Thumbs.db
+
+# Uploads & Vercel
+.vercel/
+backend/uploads/*
+!backend/uploads/.gitkeep

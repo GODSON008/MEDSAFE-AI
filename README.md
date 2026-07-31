@@ -35,6 +35,10 @@ Because medical history is highly sensitive, MedSafe AI is built on a **local-fi
    - Synthesizes medication adherence rate, allergy profile, recent symptom logs, and full intake history into a clean report.
    - Includes custom print stylesheets (`@media print`) so the patient can print a physical clinical summary sheet for their next doctor visit.
 
+6. **Secure Local Document Vault**
+   - Securely upload and store lab reports, blood tests, and medical records of all file types locally.
+   - Access and download stored reports directly from your dashboard history with strict patient access controls.
+
 ---
 
 ## Technical Architecture
@@ -59,6 +63,8 @@ graph TD
 | **MCP Server** | A custom `FastMCP` server running over local standard input/output (stdio) transport, exposing secure database access and clinical suggestion tools to the agent. | [`backend/mcp_server.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/mcp_server.py) |
 | **Security & Privacy** | Clinical safety checks, allergy warnings, and symptom suggestions run entirely on local databases. No API keys or credentials are stored or shared. | [`backend/database.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/database.py) |
 | **Robust Offline Fallback** | Integrates a local keyword and regex parsing engine that acts as the agent if no Gemini API Key is present, ensuring the app is always functional. | [`backend/medsafe_agent.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/medsafe_agent.py) |
+| **Local OCR Engine** | Utilizes Apple's native Vision framework via a custom Swift script (`ocr.swift`) to parse image text. On non-macOS platforms, this degrades gracefully. | [`backend/ocr.swift`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/ocr.swift) |
+| **Security & Hardening** | In-memory API rate limiter, strict CORS controls, case-preserving safety matches, and HMAC cryptographically-signed download tokens. | [`backend/main.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/main.py) |
 
 ---
 
@@ -66,17 +72,19 @@ graph TD
 
 ```
 ├── backend/
-│   ├── database.py             # SQLite schema definition and seed data
+│   ├── database.py              # SQLite schema definition and seed data
 │   ├── clinical_guidelines.json # Local drug interactions, allergy classes, and symptom-medicine mappings
-│   ├── mcp_server.py           # Custom FastMCP server exposing database and suggestion tools
-│   ├── medsafe_agent.py        # Antigravity Agent and rule-based fallback processor
-│   ├── main.py                 # FastAPI REST server serving static files and API routes
-│   └── medsafe.db              # SQLite Database file (created on startup)
+│   ├── mcp_server.py            # Custom FastMCP server exposing database and suggestion tools
+│   ├── medsafe_agent.py         # Antigravity Agent and rule-based fallback processor
+│   ├── main.py                  # FastAPI REST server serving static files and API routes
+│   ├── ocr.swift                # Native macOS OCR script for local text extraction
+│   └── medsafe.db               # SQLite Database file (created on startup)
 ├── frontend/
-│   ├── index.html              # Dashboard markup (checklist, tracker, lookup, and chat views)
-│   ├── styles.css              # Custom CSS styling (dark mode, glassmorphic layout)
-│   └── app.js                  # Client UI controller and API integration
-└── README.md                   # Project documentation
+│   ├── index.html               # Dashboard markup (checklist, tracker, lookup, and chat views)
+│   ├── styles.css               # Custom CSS styling (dark mode, glassmorphic layout)
+│   ├── typography.css           # Unified typography tokens
+│   └── app_v3.js                # Client UI controller and API integration
+└── README.md                    # Project documentation
 ```
 
 ---
@@ -85,11 +93,12 @@ graph TD
 
 ### Prerequisites
 
-Ensure you have **Python 3.10+** installed.
+* **Python 3.10+**
+* **macOS (Optional for Local OCR)**: The local OCR parser leverages Apple's native Vision framework via `backend/ocr.swift` to extract text from chat image uploads. On Windows or Linux systems, the app continues to function perfectly and degrades gracefully by saving files as raw attachments without running local OCR.
 
 Install the necessary python dependencies:
 ```bash
-pip install fastapi uvicorn mcp google-antigravity
+pip install fastapi uvicorn mcp google-antigravity pypdf python-dotenv certifi
 ```
 
 ### Running the Application
@@ -107,11 +116,8 @@ pip install fastapi uvicorn mcp google-antigravity
    ```
 
 ### Optional: Running with Gemini API Key
-To run with the live Google Antigravity Agent, set your API key in the environment before starting the server:
-```bash
-export GEMINI_API_KEY="your-api-key-here"
-python3 backend/main.py
+To run with the live Google Antigravity Agent (for advanced conversational chat), add your API key in a `.env` file in the root folder:
+```env
+GEMINI_API_KEY=your-api-key-here
 ```
-If the environment variable is not set, MedSafe AI **gracefully falls back to its offline parsing processor**, meaning all features (checklist, forms, safety warning check alerts, symptom tracking, symptom lookup, and dashboard navigation) remain fully operational and testable.
-# MEDSAFE-AI
-# MEDSAFE-AI
+If the API key is not set, MedSafe AI **gracefully falls back to its offline parsing processor**, meaning all features (medication scheduling, checklist, symptom tracking, safety alerts, lookup, document vault, and dashboard navigation) remain fully operational and testable entirely locally.
