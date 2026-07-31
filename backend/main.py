@@ -32,21 +32,18 @@ from medsafe_agent import stream_agent_chat, check_safety_local, add_medication_
 
 app = FastAPI(title="MedSafe AI Backend", description="Privacy-First Medical Tracker and Safety Coordinator")
 
-# Restrict CORS to secure local origins
+# Allow all origins (required for Vercel + local development)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8000",
-        "http://127.0.0.1:8000",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok", "service": "MedSafe AI Backend"}
 
 # In-memory Rate Limiting State
 RATE_LIMIT_WINDOW = 60  # 1 minute window
