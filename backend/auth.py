@@ -10,7 +10,11 @@ from typing import Optional
 
 import httpx
 from fastapi import Depends, HTTPException, Request, status
-from jose import JWTError, jwt
+try:
+    from jose import JWTError, jwt
+except ImportError:
+    import jwt
+    from jwt import PyJWTError as JWTError
 
 # ── Configuration ──────────────────────────────────────────────────────────────
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", secrets.token_hex(32))

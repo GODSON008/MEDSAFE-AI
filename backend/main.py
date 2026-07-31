@@ -1341,14 +1341,21 @@ def delete_lab_report_endpoint(report_id: int, current_user: AuthenticatedUser =
     conn.close()
     return {"message": "Lab report deleted successfully."}
 
-# Mount frontend directory static files at root
-FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "../frontend")
+# Mount frontend directory static files at root (safely for local & serverless)
+FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../frontend"))
 
-@app.get("/")
-def read_root():
-    return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+if os.path.exists(FRONTEND_DIR):
+    @app.get("/")
+    def read_root():
+        index_path = os.path.join(FRONTEND_DIR, "index.html")
+        if os.path.exists(index_path):
+            return FileResponse(index_path)
+        return {"status": "ok", "service": "MedSafe AI Backend"}
 
-app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+    try:
+        app.mount("/static_frontend", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend_static")
+    except Exception:
+        pass
 
 if __name__ == "__main__":
     import uvicorn
