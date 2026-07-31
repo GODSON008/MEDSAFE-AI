@@ -6,9 +6,18 @@ import datetime
 import urllib.request
 import urllib.parse
 import ssl
-from typing import AsyncGenerator
-from google.antigravity import Agent, LocalAgentConfig, types
-from google.antigravity.policy import allow_all
+from typing import AsyncGenerator, Optional, List, Dict, Any
+try:
+    from google.antigravity import Agent, LocalAgentConfig, types
+    from google.antigravity.policy import allow_all
+    HAS_ANTIGRAVITY = True
+except (ImportError, ModuleNotFoundError):
+    HAS_ANTIGRAVITY = False
+    Agent = None
+    LocalAgentConfig = None
+    types = None
+    allow_all = None
+
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -867,7 +876,7 @@ def query_openfda_local(drug_name: str) -> str:
         
     return f"No results found for '{drug_name}' in the openFDA database."
 
-def create_agent_config(conversation_id: str = None, user_email: str = None) -> LocalAgentConfig:
+def create_agent_config(conversation_id: str = None, user_email: str = None):
     env = os.environ.copy()
     if user_email:
         env["USER_EMAIL"] = user_email
@@ -887,6 +896,8 @@ def create_agent_config(conversation_id: str = None, user_email: str = None) -> 
 async def run_agent_chat(prompt: str, conversation_id: str = None, user_email: str = 'guest@medsafe.ai') -> str:
     """Attempts to use the Google Antigravity Agent, falling back to rule-based engine if key is missing or call hangs."""
     try:
+        if not HAS_ANTIGRAVITY:
+            raise ValueError("Google Antigravity SDK is not installed in this environment.")
         # Check if API key is set in environment or config
         if not os.environ.get("GEMINI_API_KEY"):
             raise ValueError("GEMINI_API_KEY environment variable is not set.")
