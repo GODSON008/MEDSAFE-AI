@@ -9,15 +9,19 @@ load_dotenv()
 
 if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"):
     DB_PATH = "/tmp/medsafe.db"
-    seed_db = os.path.join(os.path.dirname(__file__), "medsafe.db")
-    if not os.path.exists(DB_PATH) and os.path.exists(seed_db):
-        import shutil
-        try:
-            shutil.copy2(seed_db, DB_PATH)
-        except Exception as _e:
-            pass
 else:
     DB_PATH = os.path.join(os.path.dirname(__file__), "medsafe.db")
+
+def ensure_db_copied():
+    if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"):
+        if not os.path.exists(DB_PATH):
+            seed_db = os.path.join(os.path.dirname(__file__), "medsafe.db")
+            if os.path.exists(seed_db):
+                try:
+                    import shutil
+                    shutil.copy2(seed_db, DB_PATH)
+                except Exception:
+                    pass
 
 DRUG_PRICING_DATABASE = {
     "ibuprofen": [
@@ -157,11 +161,15 @@ def find_pricing_options(medication_name: str) -> list:
     return results
 
 def get_connection():
-    """Returns a connection to the SQLite database with timeout and WAL pragmas configured."""
+    """Returns a connection to the SQLite database with timeout and safety pragmas configured."""
+    ensure_db_copied()
     conn = sqlite3.connect(DB_PATH, timeout=30.0)
     conn.row_factory = sqlite3.Row
     try:
-        conn.execute("PRAGMA journal_mode=WAL;")
+        if not (os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV")):
+            conn.execute("PRAGMA journal_mode=WAL;")
+        else:
+            conn.execute("PRAGMA journal_mode=MEMORY;")
         conn.execute("PRAGMA busy_timeout=30000;")
         conn.execute("PRAGMA synchronous=NORMAL;")
     except Exception:
