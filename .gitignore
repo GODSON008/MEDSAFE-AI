@@ -18,3 +18,4 @@ Thumbs.db
 .vercel/
 backend/uploads/*
 !backend/uploads/.gitkeep
+.vercel

@@ -1636,12 +1636,13 @@ async function handleAddMedicationSubmit(e) {
         if (result.success) {
             // Added successfully
             document.getElementById('add-medication-form').reset();
-            refreshData();
+            await refreshData();
             invalidatePrefetchCache();
             showStatusNotification(`Medication ${name} scheduled successfully.`, 'success');
         } else {
             // Safety Warnings triggered! Open warning modal
             appState.pendingForceAddMed = medData;
+            showStatusNotification(`⚠️ Safety warning for ${name}. Click 'Confirm & Schedule' in the popup to add.`, 'warning');
             openSafetyModal(name, result.safety_warnings);
         }
     } catch (err) {
@@ -1741,9 +1742,9 @@ async function confirmForceAddMedication() {
         if (result.success) {
             closeSafetyModal();
             document.getElementById('add-medication-form').reset();
-            refreshData();
+            await refreshData();
             invalidatePrefetchCache();
-            showStatusNotification(`Medication ${result.medication.name} added override.`, 'warning');
+            showStatusNotification(`Medication ${result.medication.name} added with safety override.`, 'warning');
         }
     } catch (err) {
         console.error("Error overriding drug check:", err);
@@ -1751,8 +1752,34 @@ async function confirmForceAddMedication() {
 }
 
 // Symptoms View Updates
+async function deleteSymptomLog(symptomId) {
+    if (!symptomId) return;
+    try {
+        const res = await fetch(`/api/symptoms/${symptomId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${appState.token}`
+            }
+        });
+
+        if (res.ok) {
+            appState.symptoms = appState.symptoms.filter(s => String(s.id) !== String(symptomId));
+            updateSymptomsUI();
+            if (typeof renderCorrelationChart === 'function') renderCorrelationChart();
+            showStatusNotification("Symptom log deleted successfully.", "success");
+        } else {
+            const errData = await res.json().catch(() => ({}));
+            showStatusNotification(errData.detail || "Failed to delete symptom.", "warning");
+        }
+    } catch (err) {
+        console.error("Error deleting symptom:", err);
+        showStatusNotification("Error deleting symptom. Please try again.", "warning");
+    }
+}
+
 function updateSymptomsUI() {
     const container = document.getElementById('symptoms-history-timeline');
+    if (!container) return;
     container.innerHTML = '';
     
     if (appState.symptoms.length === 0) {
@@ -1763,19 +1790,35 @@ function updateSymptomsUI() {
     appState.symptoms.forEach(s => {
         const item = document.createElement('div');
         item.className = 'timeline-log-item';
+        item.style.position = 'relative';
         
         const sevClass = s.severity <= 3 ? 'mild' : (s.severity <= 7 ? 'moderate' : 'severe');
         const correlationBadge = s.correlated_medication ? 
-            `<span class="badge-status skipped" style="font-size:10px; margin-top:4px; display:inline-block;">Correlated: ${s.correlated_medication}</span>` : '';
+            `<span class="badge-status skipped" style="font-size:10px; margin-top:4px; display:inline-block;">Correlated: ${escapeHTML(s.correlated_medication)}</span>` : '';
             
         item.innerHTML = `
             <div class="log-severity-badge ${sevClass}">${s.severity}</div>
-            <div class="log-body">
-                <div class="log-desc-text">${s.description}</div>
-                <div class="log-meta-text">${s.logged_at} ${correlationBadge}</div>
+            <div class="log-body" style="flex: 1; padding-right: 32px;">
+                <div class="log-desc-text">${escapeHTML(s.description)}</div>
+                <div class="log-meta-text">${escapeHTML(s.logged_at)} ${correlationBadge}</div>
             </div>
+            <button type="button" class="btn-delete-symptom" data-id="${s.id}" title="Delete Symptom" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #ef4444; cursor: pointer; font-size: 13px; padding: 5px 8px; border-radius: 8px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center;" onmouseover="this.style.background='rgba(239, 68, 68, 0.25)'; this.style.transform='translateY(-50%) scale(1.08)';" onmouseout="this.style.background='rgba(239, 68, 68, 0.1)'; this.style.transform='translateY(-50%) scale(1)';">
+                🗑️
+            </button>
         `;
         container.appendChild(item);
+    });
+
+    // Attach click listeners to dustbin delete buttons
+    container.querySelectorAll('.btn-delete-symptom').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            const symptomId = btn.getAttribute('data-id');
+            if (!symptomId) return;
+            if (confirm("Are you sure you want to delete this symptom entry?")) {
+                await deleteSymptomLog(symptomId);
+            }
+        });
     });
 }
 
@@ -2426,13 +2469,25 @@ const pharmaciesResult = document.getElementById('pharmacies-result');
 
 if (btnFindPharmacies) {
     btnFindPharmacies.addEventListener('click', () => {
-        pharmaciesResult.innerHTML = '<div class="loading-spinner"></div><p style="text-align: center; color: var(--text-secondary); font-size: 12px; margin-top: 8px;">📡 Detecting GPS location & searching real nearby pharmacies...</p>';
+        pharmaciesResult.innerHTML = '<div style="text-align: center; padding: 16px 0;"><div class="loading-spinner"></div><p style="color: var(--text-secondary); font-size: 12.5px; margin-top: 8px;">📡 Detecting GPS location & searching real nearby pharmacies...</p></div>';
         
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 async (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
+                    try {
+                        const res = await fetch(`/api/pharmacies/search?lat=${lat}&lng=${lng}&query=GPS`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            if (data && data.success && data.pharmacies && data.pharmacies.length > 0) {
+                                renderBackendPharmaciesList(data.location_label, data.pharmacies);
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn("GPS backend search error:", e);
+                    }
                     await fetchReverseGeocodeAndRender(lat, lng);
                 },
                 async (error) => {
@@ -2534,13 +2589,19 @@ function renderBackendPharmaciesList(locationLabel, pharmacies) {
                     📍 Location: <span style="color: #38bdf8;">${escapeHTML(locationLabel)}</span>
                 </div>
                 <a href="${mapSearchUrl}" target="_blank" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px; font-weight: 600; text-decoration: none; border-radius: 12px; display: inline-flex; align-items: center; gap: 4px;">
-                    🗺️ Open Maps
+                    🗺️ Open Google Maps ↗
                 </a>
             </div>
             <div style="display: flex; flex-direction: column; gap: 10px;">
     `;
 
     pharmacies.forEach(shop => {
+        const phoneDisplay = (shop.phone && shop.phone !== 'Local Chemist' && shop.phone !== 'Local Store') 
+            ? `📞 <strong>${escapeHTML(shop.phone)}</strong>` 
+            : `🗺️ Google Maps Verified`;
+
+        const distDisplay = shop.distance ? ` · ${escapeHTML(shop.distance)}` : '';
+
         html += `
             <div class="pharmacy-card" style="padding: 12px 14px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: var(--border-radius-sm); transition: transform 0.2s;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start;">
@@ -2553,9 +2614,9 @@ function renderBackendPharmaciesList(locationLabel, pharmacies) {
                     </span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px;">
-                    <span>📞 <strong>${escapeHTML(shop.phone)}</strong> (${escapeHTML(shop.distance)})</span>
+                    <span>${phoneDisplay}${distDisplay}</span>
                     <a href="${shop.maps_url}" target="_blank" rel="noopener noreferrer" style="color: #38bdf8; text-decoration: none; font-weight: 700; font-size: 11.5px; display: inline-flex; align-items: center; gap: 4px; background: rgba(56, 189, 248, 0.12); padding: 3px 10px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3);">
-                        📍 Navigate ↗
+                        📍 Open on Google Maps ↗
                     </a>
                 </div>
             </div>
@@ -3201,30 +3262,43 @@ function updateReminderWidgetState() {
     }
 }
 
-function playAlarmTone(freq = 880, duration = 0.12) {
+function playAlarmTone(freq = 960, duration = 0.16) {
     try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        // Double beep pattern
-        function beep(timeOffset) {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + timeOffset);
-            
-            gain.gain.setValueAtTime(0.12, audioCtx.currentTime + timeOffset);
-            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + timeOffset + duration);
-            
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            osc.start(audioCtx.currentTime + timeOffset);
-            osc.stop(audioCtx.currentTime + timeOffset + duration + 0.1);
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContextClass) return;
+        const audioCtx = new AudioContextClass();
+
+        function playLoudBeepPair(startTime, pitch) {
+            // First Beep
+            const osc1 = audioCtx.createOscillator();
+            const gain1 = audioCtx.createGain();
+            osc1.type = 'square'; // 'square' waveform produces a loud, clear, piercing alarm sound
+            osc1.frequency.setValueAtTime(pitch, startTime);
+            gain1.gain.setValueAtTime(0.85, startTime); // High volume!
+            gain1.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+            osc1.connect(gain1);
+            gain1.connect(audioCtx.destination);
+            osc1.start(startTime);
+            osc1.stop(startTime + duration + 0.05);
+
+            // Second Beep
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.type = 'square';
+            osc2.frequency.setValueAtTime(pitch + 120, startTime + 0.20);
+            gain2.gain.setValueAtTime(0.85, startTime + 0.20); // High volume!
+            gain2.gain.exponentialRampToValueAtTime(0.01, startTime + 0.20 + duration);
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.start(startTime + 0.20);
+            osc2.stop(startTime + 0.20 + duration + 0.05);
         }
 
-        beep(0);
-        beep(0.35); // second beep shortly after
+        const now = audioCtx.currentTime;
+        // 3 loud BEEP-BEEP alarm cycles
+        playLoudBeepPair(now, freq);
+        playLoudBeepPair(now + 0.55, freq);
+        playLoudBeepPair(now + 1.10, freq + 100);
     } catch (e) {
         console.error("Audio Context beep failed:", e);
     }

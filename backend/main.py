@@ -10,11 +10,17 @@ from typing import Optional, List
 import datetime
 from dotenv import load_dotenv
 
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 # Load environment variables from .env file
 load_dotenv()
 
 # Define and create directory for report uploads
-UPLOADS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
+if os.environ.get("VERCEL") or os.environ.get("VERCEL_ENV"):
+    UPLOADS_DIR = "/tmp/uploads"
+else:
+    UPLOADS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 from database import (
@@ -544,205 +550,33 @@ def add_symptom_endpoint(symptom: SymptomRequest, current_user: AuthenticatedUse
         "message": "Symptom logged successfully."
     }
 
+@app.delete("/api/symptoms/{symptom_id}")
+def delete_symptom_endpoint(symptom_id: int, current_user: AuthenticatedUser = Depends(get_current_user)):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM symptoms WHERE id = ? AND user_email = ?", (symptom_id, current_user.email))
+    deleted = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Symptom entry not found or unauthorized.")
+    
+    return {"success": True, "message": "Symptom entry deleted successfully."}
+
 @app.get("/api/pharmacies/search")
 def search_pharmacies_endpoint(query: str, lat: Optional[float] = None, lng: Optional[float] = None):
     """
     Official Real-Time Indian Pharmacy & Local Medical Store Finder API.
-    Resolves any 6-digit Indian Pincode or City name via India Post & OpenStreetMap APIs,
-    then queries Overpass API for actual physical local chemist stores & pharmacies of that specific city.
+    Delegates location geocoding, Google Places API search, and OSM physical chemist lookup
+    to the backend/pharmacy_finder.py service module.
     """
-    import urllib.request
-    import urllib.parse
-    import json
-    import ssl
-    import re
-    import math
+    try:
+        from pharmacy_finder import search_pharmacies
+    except ImportError:
+        from backend.pharmacy_finder import search_pharmacies
 
-    ctx = ssl.create_default_context()
-    ctx.check_hostname = False
-    ctx.verify_mode = ssl.CERT_NONE
-
-    headers = {
-        'User-Agent': 'MedSafeAI-LocalPharmacyFinder/2.0 (https://medsafe.ai; contact@medsafe.ai)',
-        'Accept': 'application/json'
-    }
-
-    clean_query = query.strip()
-    is_pincode = bool(re.match(r"^\d{6}$", clean_query))
-
-    location_label = clean_query
-    district = "Local Area"
-    state = "India"
-    post_office = ""
-    target_lat = lat
-    target_lng = lng
-
-    # 1. Pincode resolution via India Post API
-    if is_pincode:
-        try:
-            url = f"https://api.postalpincode.in/pincode/{clean_query}"
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, context=ctx, timeout=5) as resp:
-                data = json.loads(resp.read().decode('utf-8'))
-                if data and len(data) > 0 and data[0].get('Status') == 'Success':
-                    po_list = data[0].get('PostOffice', [])
-                    if po_list:
-                        po = po_list[0]
-                        post_office = po.get('Name', '')
-                        district = po.get('District', '')
-                        state = po.get('State', '')
-                        location_label = f"{post_office}, {district}, {state} ({clean_query})"
-        except Exception as e:
-            print(f"[MedSafe AI] India Post API error: {e}")
-
-    # 2. Geocoding location to Lat/Lng via OpenStreetMap Nominatim
-    if not target_lat or not target_lng:
-        try:
-            search_str = f"{post_office}, {district}, {state}, India" if is_pincode and post_office else f"{clean_query}, India"
-            geo_url = f"https://nominatim.openstreetmap.org/search?format=json&q={urllib.parse.quote(search_str)}&limit=1"
-            req = urllib.request.Request(geo_url, headers=headers)
-            with urllib.request.urlopen(req, context=ctx, timeout=5) as resp:
-                geo_data = json.loads(resp.read().decode('utf-8'))
-                if geo_data:
-                    target_lat = float(geo_data[0]['lat'])
-                    target_lng = float(geo_data[0]['lon'])
-                    if not is_pincode:
-                        location_label = geo_data[0].get('display_name', clean_query).split(',')[0]
-        except Exception as e:
-            print(f"[MedSafe AI] Nominatim Geocoding error: {e}")
-
-    # 3. Query real physical local pharmacy stores via Overpass API
-    real_pharmacies = []
-    if target_lat and target_lng:
-        try:
-            overpass_q = f'[out:json];(node["amenity"="pharmacy"](around:8000,{target_lat},{target_lng});node["shop"="chemist"](around:8000,{target_lat},{target_lng});way["amenity"="pharmacy"](around:8000,{target_lat},{target_lng}););out center 10;'
-            op_url = f"https://overpass-api.de/api/interpreter?data={urllib.parse.quote(overpass_q)}"
-            req = urllib.request.Request(op_url, headers=headers)
-            with urllib.request.urlopen(req, context=ctx, timeout=6) as resp:
-                op_data = json.loads(resp.read().decode('utf-8'))
-                elements = op_data.get('elements', [])
-                for el in elements:
-                    tags = el.get('tags', {})
-                    name = tags.get('name') or tags.get('name:en') or tags.get('brand') or tags.get('operator')
-                    if name:
-                        shop_lat = el.get('lat') or (el.get('center', {}).get('lat', target_lat))
-                        shop_lng = el.get('lon') or (el.get('center', {}).get('lon', target_lng))
-                        
-                        # Compute Haversine distance
-                        R = 6371.0
-                        dlat = math.radians(shop_lat - target_lat)
-                        dlon = math.radians(shop_lng - target_lng)
-                        a = math.sin(dlat/2)**2 + math.cos(math.radians(target_lat)) * math.cos(math.radians(shop_lat)) * math.sin(dlon/2)**2
-                        dist_km = R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-                        
-                        street = tags.get('addr:street') or tags.get('addr:suburb') or tags.get('addr:full') or f"{post_office or district}"
-                        phone = tags.get('phone') or tags.get('contact:phone') or tags.get('phone:mobile') or "Listed on Google Maps"
-                        is_24h = tags.get('opening_hours') == '24/7'
-                        
-                        maps_q = f"{name} {street} {district}".strip()
-                        real_pharmacies.append({
-                            "name": name,
-                            "type": "Local Physical Pharmacy & Chemist",
-                            "address": f"{street}, {district}, {state}",
-                            "distance": f"{dist_km:.1f} km away",
-                            "distance_val": dist_km,
-                            "status": "Open 24/7" if is_24h else "Open Now",
-                            "phone": phone,
-                            "badge": "Local Chemist",
-                            "maps_url": f"https://www.google.com/maps/search/{urllib.parse.quote(maps_q)}"
-                        })
-                # Sort real physical shops by distance ascending!
-                real_pharmacies.sort(key=lambda x: x['distance_val'])
-        except Exception as e:
-            print(f"[MedSafe AI] Overpass API query error: {e}")
-
-    # Deduplicate real pharmacies by name
-    seen_names = set()
-    unique_real = []
-    for ph in real_pharmacies:
-        norm = ph['name'].lower().strip()
-        if norm not in seen_names:
-            seen_names.add(norm)
-            unique_real.append(ph)
-
-    # 4. If Overpass returned real local shops for this city, return them!
-    if unique_real:
-        return {
-            "success": True,
-            "query": clean_query,
-            "is_pincode": is_pincode,
-            "location_label": location_label,
-            "district": district,
-            "state": state,
-            "pharmacies": unique_real[:8]
-        }
-
-    # 5. Dynamic fallback populated with the SPECIFIC city/district local stores
-    city_name = post_office or district or clean_query
-    maps_base = "https://www.google.com/maps/search/"
-    
-    fallback_pharmacies = [
-        {
-            "name": f"{city_name} Medicos & Surgical Hall",
-            "type": "Local Retail Medical Store",
-            "address": f"Main Bazaar, {city_name}, {district}, {state}",
-            "distance": "0.3 km away",
-            "status": "Open Now",
-            "phone": "Local Chemist",
-            "badge": "Local Store",
-            "maps_url": f"{maps_base}{urllib.parse.quote('Medical Store ' + city_name + ' ' + district)}"
-        },
-        {
-            "name": f"PMBJP Jan Aushadhi Kendra ({district})",
-            "type": "Govt. Subsidized Generic Medicine Store",
-            "address": f"Hospital Road, {city_name}, {district}, {state}",
-            "distance": "0.6 km away",
-            "status": "Open Now (Save up to 80%)",
-            "phone": "1800 180 8080",
-            "badge": "Govt. Generic",
-            "maps_url": f"{maps_base}{urllib.parse.quote('Jan Aushadhi Kendra ' + city_name + ' ' + district)}"
-        },
-        {
-            "name": f"Shree Ram Medical & Healthcare Store",
-            "type": "Neighborhood Retail Chemist",
-            "address": f"Station Road, {city_name}, {state}",
-            "distance": "0.8 km away",
-            "status": "Open Now",
-            "phone": "Local Chemist",
-            "badge": "Neighborhood Store",
-            "maps_url": f"{maps_base}{urllib.parse.quote('Chemist ' + city_name + ' ' + district)}"
-        },
-        {
-            "name": f"Apollo Pharmacy ({district})",
-            "type": "24x7 Retail & Express Chemist",
-            "address": f"Central Market, {city_name}, {state}",
-            "distance": "1.2 km away",
-            "status": "Open 24/7",
-            "phone": "1860 500 0101",
-            "badge": "Verified 24/7",
-            "maps_url": f"{maps_base}{urllib.parse.quote('Apollo Pharmacy ' + city_name + ' ' + district)}"
-        },
-        {
-            "name": f"Wellness Chemist & Medical Store",
-            "type": "Licensed Pharmacy & Health Goods",
-            "address": f"Civil Lines, {city_name}, {state}",
-            "distance": "1.5 km away",
-            "status": "Open Now",
-            "phone": "Local Store",
-            "badge": "Licensed Store",
-            "maps_url": f"{maps_base}{urllib.parse.quote('Wellness Chemist ' + city_name)}"
-        }
-    ]
-
-    return {
-        "success": True,
-        "query": clean_query,
-        "is_pincode": is_pincode,
-        "location_label": location_label,
-        "district": district,
-        "state": state,
-        "pharmacies": fallback_pharmacies
-    }
+    return search_pharmacies(query=query, lat=lat, lng=lng)
 
 @app.get("/api/adherence")
 def get_adherence_endpoint(current_user: AuthenticatedUser = Depends(get_current_user)):
@@ -1192,6 +1026,22 @@ async def upload_lab_report_endpoint(
     conn.commit()
     report_id = cursor.lastrowid
     conn.close()
+
+    try:
+        try:
+            from supabase_client import sync_lab_report_to_supabase
+        except ImportError:
+            from backend.supabase_client import sync_lab_report_to_supabase
+        sync_lab_report_to_supabase(
+            user_email=current_user.email,
+            filename=safe_filename,
+            report_label=report_label,
+            file_content_text="",
+            ai_analysis="",
+            uploaded_at=uploaded_at
+        )
+    except Exception as exc:
+        print(f"[MedSafe AI] Could not sync report to Supabase: {exc}")
     
     return {
         "id": report_id,
@@ -1331,17 +1181,28 @@ def delete_lab_report_endpoint(report_id: int, current_user: AuthenticatedUser =
     cursor = conn.cursor()
     
     # Ownership verification
-    cursor.execute("SELECT id FROM lab_reports WHERE id = ? AND user_email = ?", (report_id, current_user.email))
-    if not cursor.fetchone():
+    cursor.execute("SELECT filename FROM lab_reports WHERE id = ? AND user_email = ?", (report_id, current_user.email))
+    row = cursor.fetchone()
+    if not row:
         conn.close()
         raise HTTPException(status_code=404, detail="Report not found or access denied.")
-        
+    
+    filename_to_del = row["filename"]
     cursor.execute("DELETE FROM lab_reports WHERE id = ? AND user_email = ?", (report_id, current_user.email))
     conn.commit()
     conn.close()
+
+    try:
+        try:
+            from supabase_client import delete_lab_report_from_supabase
+        except ImportError:
+            from backend.supabase_client import delete_lab_report_from_supabase
+        delete_lab_report_from_supabase(user_email=current_user.email, filename=filename_to_del)
+    except Exception:
+        pass
     return {"message": "Lab report deleted successfully."}
 
-# Mount frontend directory static files at root (safely for local & serverless)
+# Mount frontend directory static files at root for local development
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "../frontend"))
 
 if os.path.exists(FRONTEND_DIR):
@@ -1353,7 +1214,7 @@ if os.path.exists(FRONTEND_DIR):
         return {"status": "ok", "service": "MedSafe AI Backend"}
 
     try:
-        app.mount("/static_frontend", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend_static")
+        app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
     except Exception:
         pass
 

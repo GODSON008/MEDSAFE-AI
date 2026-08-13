@@ -431,6 +431,17 @@ def get_user_by_identifier(identifier: str):
     return row
 
 
+def _get_supabase_sync():
+    try:
+        import supabase_client
+        return supabase_client
+    except ImportError:
+        try:
+            from backend import supabase_client
+            return supabase_client
+        except ImportError:
+            return None
+
 def create_local_user(email: str, username: str, plain_password: str) -> dict:
     """Hash password with bcrypt and insert a local user. Returns the user dict."""
     import datetime
@@ -446,6 +457,14 @@ def create_local_user(email: str, username: str, plain_password: str) -> dict:
         conn.commit()
     finally:
         conn.close()
+
+    sc = _get_supabase_sync()
+    if sc:
+        try:
+            sc.sync_user_to_supabase(email=email, username=username, patient_id=patient_id, provider="local", password_hash=password_hash)
+        except Exception:
+            pass
+
     return {"email": email, "username": username, "provider": "local", "patient_id": patient_id}
 
 
@@ -464,6 +483,11 @@ def get_or_create_google_user(email: str, name: str) -> dict:
                 conn.commit()
             finally:
                 conn.close()
+        try:
+            from backend.supabase_client import sync_user_to_supabase
+            sync_user_to_supabase(email=existing["email"], username=existing["username"], patient_id=pid, provider=existing["provider"])
+        except Exception:
+            pass
         return {"email": existing["email"], "username": existing["username"], "provider": existing["provider"], "patient_id": pid}
         
     conn = get_connection()
@@ -477,6 +501,13 @@ def get_or_create_google_user(email: str, name: str) -> dict:
         conn.commit()
     finally:
         conn.close()
+
+    try:
+        from backend.supabase_client import sync_user_to_supabase
+        sync_user_to_supabase(email=email, username=name, patient_id=pid, provider="google")
+    except Exception:
+        pass
+
     return {"email": email, "username": name, "provider": "google", "patient_id": pid}
 
 
@@ -517,6 +548,13 @@ def add_patient_to_doctor(doctor_email: str, patient_id_or_email: str) -> dict:
         conn.commit()
     finally:
         conn.close()
+
+    try:
+        from backend.supabase_client import sync_doctor_patient_to_supabase
+        sync_doctor_patient_to_supabase(doctor_email, patient_email)
+    except Exception:
+        pass
+
     return {
         "success": True,
         "patient": {

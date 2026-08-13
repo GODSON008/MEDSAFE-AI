@@ -1,8 +1,10 @@
-# 💊 MedSafe AI - Privacy , Medication Management & Clinical Safety Assistant
+# 💊 MedSafe AI - Privacy, Medication Management & Clinical Safety Assistant
 
-> **Kaggle 5-Day AI Agents Capstone Project**
-> **Track:** Concierge Agents
-> **Theme:** Local-First, Privacy-First Medication Management & Clinical Safety Assistant
+> **Kaggle 5-Day AI Agents Capstone Project**  
+> **Track:** Concierge Agents  
+> **Theme:** Local-First, Privacy-First Medication Management & Clinical Safety Assistant  
+> **Live Deployment:** [https://medsafe-ai-pi.vercel.app](https://medsafe-ai-pi.vercel.app)  
+> **GitHub Repository:** [https://github.com/GODSON008/MEDSAFE-AI](https://github.com/GODSON008/MEDSAFE-AI)  
 
 ---
 
@@ -10,15 +12,18 @@
 
 **MedSafe AI** is an AI-powered healthcare companion that helps users safely manage medications, monitor treatment adherence, track symptoms, and detect potential clinical risks.
 
-Unlike cloud-based health assistants, **all sensitive medical information remains on the user's device**.
+Unlike cloud-only health assistants, **MedSafe AI** features a **Hybrid Local-First + Resilient Cloud Architecture**:
+- All primary medication records, symptom logs, allergies, and clinical data are stored locally in a high-performance **SQLite database** (`medsafe.db`) accessed via a custom **Model Context Protocol (MCP)** server.
+- Optional remote cloud synchronization to **Supabase** ensures cross-device persistence across serverless platforms (like **Vercel**).
+- **Resilient Fallback**: If Supabase is paused, offline, or unavailable, MedSafe AI automatically operates seamlessly in standalone local mode without blocking user actions or throwing runtime exceptions.
 
-The application follows a **Local-First + Privacy-First** architecture where medication records, symptom history, allergies, and clinical data are stored securely in a local SQLite database and accessed through a custom **Model Context Protocol (MCP)** server.
+---
 
-No patient records are uploaded to external servers.
+## 🚀 Live Demo & Repository Links
 
-6. **Secure Local Document Vault**
-   - Securely upload and store lab reports, blood tests, and medical records of all file types locally.
-   - Access and download stored reports directly from your dashboard history with strict patient access controls.
+- 🌐 **Live Website (Vercel)**: [https://medsafe-ai-pi.vercel.app](https://medsafe-ai-pi.vercel.app)
+- 🐙 **GitHub Codebase**: [https://github.com/GODSON008/MEDSAFE-AI](https://github.com/GODSON008/MEDSAFE-AI)
+- 🗄️ **Supabase SQL Schema**: [`supabase_schema.sql`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/supabase_schema.sql)
 
 ---
 
@@ -39,7 +44,7 @@ The AI automatically extracts:
 * Schedule
 * Frequency
 
-and saves everything into the local database.
+and saves everything into the database.
 
 ### Daily Medication Checklist
 
@@ -58,11 +63,8 @@ Before scheduling any medication, MedSafe AI automatically performs safety valid
 Example:
 
 ```
-User Allergy:
-Penicillin
-
-Medication:
-Amoxicillin
+User Allergy: Penicillin
+Medication: Amoxicillin
 ```
 
 The assistant immediately warns the user before allowing scheduling.
@@ -82,42 +84,19 @@ Users receive an interactive warning dialog before confirming.
 
 ---
 
-## 📈 Symptom Tracking
+## 📈 Symptom Tracking & Side Effect Correlation
 
-Users can log symptoms naturally.
-
-Example:
-
-```
-Dizzy after lunch
-Severity: 6/10
-```
-
-Every symptom entry is linked to nearby medication doses to help identify possible side effects.
+Users can log symptoms naturally (e.g., *"Dizzy after lunch, Severity: 6/10"*).
+* Every symptom entry is linked to nearby medication doses.
+* The dashboard features a dual-axis timeline visualization showing medication doses vs average symptom severity to spot treatment patterns.
 
 ---
 
-## 📊 Medication vs Symptom Correlation
+## 💡 Symptom → Medication Lookup & Generic Pricing
 
-The dashboard includes a dual-axis timeline visualization showing:
-
-* Medication doses taken (Bar Chart)
-* Average symptom severity (Line Chart)
-
-This helps users and healthcare professionals identify treatment patterns.
-
----
-
-## 💡 Symptom → Medication Lookup
-
-Users can search symptoms such as:
-
-* Headache
-* Fever
-* Cough
-* Acid reflux
-
-The assistant recommends commonly used medications from the local clinical guidelines while displaying a clear clinical disclaimer encouraging consultation with a healthcare professional.
+* Search common symptoms (e.g. *Headache, Fever, Cough, Acid Reflux*).
+* Get recommended medications from clinical guidelines with disclaimer.
+* Compare generic vs brand-name medication prices across pharmacy sources (Apollo Pharmacy, MedPlus).
 
 ---
 
@@ -126,35 +105,17 @@ The assistant recommends commonly used medications from the local clinical guide
 Generate a printable clinical summary including:
 
 * Medication adherence rate
-* Current medications
-* Allergy profile
-* Symptom history
-* Medication timeline
+* Current medications & allergy profile
+* Symptom history & medication timeline
 * Recent side effects
-
-A custom `@media print` stylesheet ensures the report prints cleanly for doctor appointments.
 
 ---
 
-# 🔒 Privacy First
+## 📄 Secure Document Vault & Local OCR
 
-Healthcare information is highly sensitive.
-
-MedSafe AI was designed so patient data never leaves the local machine.
-
-### Stored Locally
-
-* Medication schedule
-* Symptom logs
-* Allergy profile
-* Compliance history
-* Clinical notes
-
-### Never Sent Online
-
-* Medical history
-* Personal health information
-* Database records
+* Upload blood tests, lab reports, and medical records.
+* Native macOS local OCR extraction via `ocr.swift` using Apple's Vision framework.
+* Analyzes lab report metrics using AI clinical guidelines.
 
 ---
 
@@ -163,17 +124,17 @@ MedSafe AI was designed so patient data never leaves the local machine.
 ```mermaid
 graph TD
 
-UI["Frontend Dashboard"]
+UI["Frontend Dashboard (HTML/CSS/JS)"]
 
-UI -->|"REST API"| FastAPI["FastAPI Backend"]
-
-UI -->|"Chat"| FastAPI
+UI -->|"REST API / Auth"| FastAPI["FastAPI Backend (main.py)"]
 
 FastAPI -->|"Agent Requests"| Agent["Google Antigravity Agent"]
 
-FastAPI -->|"SQLite Queries"| DB[(SQLite)]
+FastAPI -->|"Primary Storage"| DB[(SQLite: medsafe.db)]
 
-Agent -->|"MCP (stdio)"| MCP["FastMCP Server"]
+FastAPI -->|"Resilient Sync"| Supabase[(Supabase Cloud DB)]
+
+Agent -->|"MCP (stdio)"| MCP["FastMCP Server (mcp_server.py)"]
 
 MCP --> DB
 ```
@@ -182,38 +143,12 @@ MCP --> DB
 
 | Course Concept | Implementation in MedSafe AI | File Location |
 | :--- | :--- | :--- |
-| **Agent / Multi-agent (ADK)** | Coordinator agent config using `google.antigravity.Agent` and `LocalAgentConfig` to parse inputs, coordinate workflows, chat with users, and suggest medications. | [`backend/medsafe_agent.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/medsafe_agent.py) |
-| **MCP Server** | A custom `FastMCP` server running over local standard input/output (stdio) transport, exposing secure database access and clinical suggestion tools to the agent. | [`backend/mcp_server.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/mcp_server.py) |
-| **Security & Privacy** | Clinical safety checks, allergy warnings, and symptom suggestions run entirely on local databases. No API keys or credentials are stored or shared. | [`backend/database.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/database.py) |
-| **Robust Offline Fallback** | Integrates a local keyword and regex parsing engine that acts as the agent if no Gemini API Key is present, ensuring the app is always functional. | [`backend/medsafe_agent.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/medsafe_agent.py) |
-| **Local OCR Engine** | Utilizes Apple's native Vision framework via a custom Swift script (`ocr.swift`) to parse image text. On non-macOS platforms, this degrades gracefully. | [`backend/ocr.swift`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/ocr.swift) |
-| **Security & Hardening** | In-memory API rate limiter, strict CORS controls, case-preserving safety matches, and HMAC cryptographically-signed download tokens. | [`backend/main.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/main.py) |
-
----
-
-# 🤖 AI Agent Workflow
-
-```text
-User Request
-      │
-      ▼
-FastAPI Backend
-      │
-      ▼
-Google Antigravity Agent
-      │
-      ▼
-FastMCP Server
-      │
-      ▼
-SQLite Database
-      │
-      ▼
-Clinical Safety Validation
-      │
-      ▼
-Response Returned
-```
+| **Agent / Multi-agent (ADK)** | Coordinator agent config using `google.antigravity.Agent` and `LocalAgentConfig` to parse inputs, coordinate workflows, and evaluate clinical safety. | [`backend/medsafe_agent.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/medsafe_agent.py) |
+| **MCP Server** | A custom `FastMCP` server running over local stdio transport, exposing secure database access and clinical suggestion tools to the agent. | [`backend/mcp_server.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/mcp_server.py) |
+| **Security & Privacy** | Clinical safety checks, allergy warnings, and symptom suggestions run on local guidelines. | [`backend/database.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/database.py) |
+| **Resilient Supabase Sync** | Auto-detects paused or offline Supabase instances, switching seamlessly to local SQLite storage. | [`backend/supabase_client.py`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/supabase_client.py) |
+| **Local OCR Engine** | Utilizes Apple's native Vision framework via a custom Swift script (`ocr.swift`) to parse image text. | [`backend/ocr.swift`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/backend/ocr.swift) |
+| **Vercel Serverless Build** | Serverless deployment via Vercel Python runtime and static frontend routing. | [`vercel.json`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/vercel.json) |
 
 ---
 
@@ -228,46 +163,60 @@ MedSafe-AI
 │   ├── mcp_server.py            # Custom FastMCP server exposing database and suggestion tools
 │   ├── medsafe_agent.py         # Antigravity Agent and rule-based fallback processor
 │   ├── main.py                  # FastAPI REST server serving static files and API routes
+│   ├── supabase_client.py       # Resilient Supabase database sync client with auto-fallback
+│   ├── pharmacy_finder.py       # Pharmacy pricing comparison helper
 │   ├── ocr.swift                # Native macOS OCR script for local text extraction
-│   └── medsafe.db               # SQLite Database file (created on startup)
+│   └── medsafe.db               # Local SQLite Database file
 ├── frontend/
 │   ├── index.html               # Dashboard markup (checklist, tracker, lookup, and chat views)
 │   ├── styles.css               # Custom CSS styling (dark mode, glassmorphic layout)
 │   ├── typography.css           # Unified typography tokens
 │   └── app_v3.js                # Client UI controller and API integration
+├── supabase_schema.sql          # SQL Schema setup script for Supabase database tables
+├── vercel.json                  # Vercel deployment configuration
 └── README.md                    # Project documentation
 ```
 
 ---
 
-# 🛠️ Technology Stack
+# 🛠️ Database & Supabase Setup
 
-| Component | Technology             |
-| --------- | ---------------------- |
-| Backend   | FastAPI                |
-| AI Agent  | Google Antigravity SDK |
-| MCP       | FastMCP                |
-| Database  | SQLite                 |
-| Frontend  | HTML, CSS, JavaScript  |
-| Charts    | Chart.js               |
-| Storage   | Local SQLite           |
+### 1. Local SQLite Database
+The app automatically initializes `medsafe.db` on startup when running locally or on serverless cold starts.
 
-* **Python 3.10+**
-* **macOS (Optional for Local OCR)**: The local OCR parser leverages Apple's native Vision framework via `backend/ocr.swift` to extract text from chat image uploads. On Windows or Linux systems, the app continues to function perfectly and degrades gracefully by saving files as raw attachments without running local OCR.
-
-```bash
-pip install fastapi uvicorn mcp google-antigravity pypdf python-dotenv certifi
+### 2. Supabase Cloud Database (Optional Sync)
+If using Supabase cloud persistence:
+1. Open your [Supabase SQL Editor](https://supabase.com/dashboard).
+2. Execute the DDL script in [`supabase_schema.sql`](file:///Users/herambkrishnaarora/Desktop/kaggle%20capstone/supabase_schema.sql) to create `users`, `doctor_patients`, and `lab_reports` tables.
+3. Configure environment variables in `.env`:
+```env
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_KEY=your-supabase-anon-key
 ```
 
 ---
 
-## Run the Application
+# 💻 Running Locally
 
-Start the backend server:
-
-### Optional: Running with Gemini API Key
-To run with the live Google Antigravity Agent (for advanced conversational chat), add your API key in a `.env` file in the root folder:
-```env
-GEMINI_API_KEY=your-api-key-here
+1. Install dependencies:
+```bash
+pip install -r requirements.txt
 ```
-If the API key is not set, MedSafe AI **gracefully falls back to its offline parsing processor**, meaning all features (medication scheduling, checklist, symptom tracking, safety alerts, lookup, document vault, and dashboard navigation) remain fully operational and testable entirely locally.
+
+2. Start the application:
+```bash
+python3 backend/main.py
+```
+
+3. Open in browser:  
+[http://localhost:8000](http://localhost:8000)
+
+---
+
+# 🚀 Deployment to Vercel
+
+To deploy updates to Vercel:
+```bash
+npx vercel --prod
+```
+The site will build using `@vercel/python` for the backend API and `@vercel/static` for the frontend interface.
