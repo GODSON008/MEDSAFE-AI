@@ -2082,10 +2082,10 @@ body.light-theme .btn-checkbox.btn-skip {
     overflow: hidden;
 }
 
-/* Footpath Live Walking Doctors & Pedestrians */
+/* Footpath Live Walking Doctors & Pedestrians with Animated Legs */
 .footpath-walking-layer {
     position: absolute;
-    bottom: 18%;
+    bottom: 16%;
     left: 0;
     width: 100%;
     height: 60px;
@@ -2097,150 +2097,168 @@ body.light-theme .btn-checkbox.btn-skip {
     position: absolute;
     display: flex;
     align-items: center;
-    gap: 6px;
-    background: rgba(15, 23, 42, 0.85);
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 600;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    justify-content: center;
 }
 
-.doctor-avatar {
-    font-size: 14px;
+.character-svg {
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+}
+
+.leg-left {
+    transform-origin: 16px 38px;
+    animation: leg-swing-left 0.6s infinite alternate ease-in-out;
+}
+
+.leg-right {
+    transform-origin: 24px 38px;
+    animation: leg-swing-right 0.6s infinite alternate ease-in-out;
+}
+
+@keyframes leg-swing-left {
+    0% { transform: rotate(-25deg); }
+    100% { transform: rotate(25deg); }
+}
+
+@keyframes leg-swing-right {
+    0% { transform: rotate(25deg); }
+    100% { transform: rotate(-25deg); }
 }
 
 .doctor-walker-1 {
     bottom: 10px;
-    animation: walker-walk-right 16s linear infinite;
+    animation: walker-walk-right 18s linear infinite;
 }
 
 .doctor-walker-2 {
-    bottom: 30px;
-    animation: walker-walk-left 20s linear infinite;
+    bottom: 32px;
+    animation: walker-walk-left 22s linear infinite 3s;
 }
 
 .pedestrian-walker-1 {
-    bottom: 0px;
-    animation: walker-walk-right 24s linear infinite 4s;
-}
-
-.pedestrian-walker-2 {
-    bottom: 22px;
-    animation: walker-walk-left 18s linear infinite 2s;
+    bottom: 4px;
+    animation: walker-walk-right 26s linear infinite 6s;
 }
 
 @keyframes walker-walk-right {
     0% {
-        left: -120px;
-        transform: scale(0.9);
+        left: -80px;
+        transform: scale(0.85);
     }
     50% {
-        transform: scale(0.95) translateY(-2px);
+        transform: scale(0.92) translateY(-2px);
     }
     100% {
         left: 105vw;
-        transform: scale(0.9);
+        transform: scale(0.85);
     }
 }
 
 @keyframes walker-walk-left {
     0% {
         left: 105vw;
-        transform: scale(0.9);
+        transform: scale(0.85);
     }
     50% {
-        transform: scale(0.95) translateY(-2px);
+        transform: scale(0.92) translateY(-2px);
     }
     100% {
-        left: -120px;
-        transform: scale(0.9);
+        left: -80px;
+        transform: scale(0.85);
     }
 }
 
-/* Ambulance Drive-In Animation Wrapper (Stops at Hospital Gate & Opens Doors) */
+/* 3D Ambulance Drive-In Animation along Curved Asphalt Road */
 .ambulance-anim-wrapper {
     position: absolute;
-    bottom: 12%;
-    right: -320px;
     z-index: 6;
     pointer-events: none;
-    animation: ambulance-drive-to-gate 2.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: ambulance-road-drive 2.6s cubic-bezier(0.25, 0.9, 0.4, 1) forwards;
 }
 
 .ambulance-vehicle {
     position: relative;
-    width: 280px;
-    filter: drop-shadow(0 15px 20px rgba(0,0,0,0.6));
+    width: 240px;
+    filter: drop-shadow(0 15px 12px rgba(0,0,0,0.55));
 }
 
 .ambulance-img {
     width: 100%;
     height: auto;
     display: block;
-    border-radius: 8px;
+    border: none;
+    outline: none;
+    box-shadow: none;
 }
 
 .ambulance-open {
-    border-radius: 12px;
-    box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);
+    border: none;
+    outline: none;
+    box-shadow: none;
+    filter: drop-shadow(0 0 15px rgba(239, 68, 68, 0.4));
 }
 
 /* Siren Light Flashes */
 .siren-flash {
     position: absolute;
-    top: 10%;
-    width: 24px;
-    height: 24px;
+    top: 8%;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
-    filter: blur(4px);
-    opacity: 0.85;
-    animation: siren-pulse 0.4s infinite alternate ease-in-out;
+    filter: blur(3px);
+    opacity: 0.9;
+    animation: siren-pulse 0.35s infinite alternate ease-in-out;
 }
 
 .siren-red {
-    left: 35%;
+    left: 36%;
     background: #ef4444;
     box-shadow: 0 0 20px #ef4444, 0 0 35px #dc2626;
 }
 
 .siren-blue {
-    left: 45%;
+    left: 48%;
     background: #3b82f6;
     box-shadow: 0 0 20px #3b82f6, 0 0 35px #2563eb;
-    animation-delay: 0.2s;
+    animation-delay: 0.18s;
 }
 
-@keyframes ambulance-drive-to-gate {
+/* Realistic Curved Road Driving Trajectory */
+@keyframes ambulance-road-drive {
     0% {
-        right: -320px;
-        transform: scale(0.65) translateY(20px);
+        bottom: -60px;
+        left: -240px;
+        transform: scale(1.35) rotate(-15deg);
         opacity: 0;
     }
     15% {
         opacity: 1;
     }
-    80% {
-        right: 22%;
-        transform: scale(0.88) translateY(0);
+    45% {
+        bottom: 10%;
+        left: 16%;
+        transform: scale(0.95) rotate(-8deg);
+    }
+    82% {
+        bottom: 23%;
+        left: 41%;
+        transform: scale(0.62) rotate(0deg);
     }
     100% {
-        right: 20%;
-        transform: scale(0.88) translateY(0);
-        opacity: 0.98;
+        bottom: 23%;
+        left: 41%;
+        transform: scale(0.62) rotate(0deg);
+        opacity: 1;
     }
 }
 
 @keyframes siren-pulse {
     0% {
-        opacity: 0.25;
-        transform: scale(0.8);
+        opacity: 0.2;
+        transform: scale(0.75);
     }
     100% {
         opacity: 1;
-        transform: scale(1.4);
+        transform: scale(1.35);
     }
 }
 

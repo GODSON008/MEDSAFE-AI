@@ -344,15 +344,20 @@ function initAuthFlow() {
     const btnExitDoctorMode = document.getElementById('btn-exit-doctor-mode');
     const pageBtnDoctorLogout = document.getElementById('btn-page-doctor-logout');
 
-    // Ambulance Arrival & Open Doors Sequence
+    // Ambulance Arrival & Open Doors Sequence (1-second delay before login pop-up)
     const imgClosed = document.getElementById('ambulance-img-closed');
     const imgOpen = document.getElementById('ambulance-img-open');
     if (imgClosed && imgOpen) {
+        // Step 1: Ambulance arrives at hospital gate at 2.6s and opens rear doors
         setTimeout(() => {
             imgClosed.style.display = 'none';
             imgOpen.style.display = 'block';
-            if (authStage) authStage.classList.add('active');
         }, 2600);
+
+        // Step 2: Exactly 1.0 second AFTER rear doors open, reveal login pop-up
+        setTimeout(() => {
+            if (authStage) authStage.classList.add('active');
+        }, 3600);
     }
 
     // Global Logout Handler Setup (Always bound regardless of active session state)
