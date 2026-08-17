@@ -14,15 +14,26 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Identity Services (for Google Sign-In) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="stylesheet" href="styles.css?v=10">
+    <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
     <!-- Login Screen & Pill Animation Overlay -->
     <div id="login-screen-overlay">
         <!-- Interactive Moving Decorations Layer -->
         <div id="login-bg-decorations" class="auth-bg-decorations"></div>
+        
+        <!-- Animated Ambulance Drive-In Layer -->
+        <div id="ambulance-anim-wrapper" class="ambulance-anim-wrapper">
+            <div class="ambulance-vehicle">
+                <img src="assets/ambulance.png" alt="Emergency Ambulance" class="ambulance-img">
+                <div class="siren-flash siren-red"></div>
+                <div class="siren-flash siren-blue"></div>
+                <div class="headlight-beam"></div>
+            </div>
+        </div>
+
         <!-- Giant Scaling Stethoscope Reveal -->
-        <div id="intro-stethoscope" class="intro-stethoscope">
+        <div id="intro-stethoscope" class="intro-stethoscope" style="display: none;">
             <i data-lucide="stethoscope"></i>
         </div>
         <!-- Stage 1: Pill Splitting Animation (Hidden by default to prevent stuck screen) -->
