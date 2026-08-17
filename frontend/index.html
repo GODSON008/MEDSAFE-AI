@@ -14,13 +14,20 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Identity Services (for Google Sign-In) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="stylesheet" href="styles.css?v=14">
+    <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body>
     <!-- Login Screen Overlay -->
     <div id="login-screen-overlay">
         <!-- Interactive Moving Decorations Layer -->
         <div id="login-bg-decorations" class="auth-bg-decorations"></div>
+        
+        <!-- Live Background Road Traffic Layer (Street Cars) -->
+        <div class="bg-road-traffic-layer">
+            <div class="bg-street-car">
+                <img src="assets/car_clean.png" alt="Street Car" class="bg-car-img">
+            </div>
+        </div>
         
         <!-- Live Animated Walking Doctors & Pedestrians Following Footpath Route -->
         <div class="footpath-walking-layer">

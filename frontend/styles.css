@@ -2073,13 +2073,57 @@ body.light-theme .btn-checkbox.btn-skip {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(2, 6, 23, 0.4) 100%), url('assets/generic_hospital_exterior.jpg') no-repeat center center / cover;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(2, 6, 23, 0.4) 100%), url('assets/city_hospital.jpg') no-repeat center center / cover;
     z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
+}
+
+/* Background Street Road Traffic Layer (Sedan Cars) */
+.bg-road-traffic-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 3;
+}
+
+.bg-street-car {
+    position: absolute;
+    top: 55%;
+    left: -180px;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    animation: bg-street-car-drive 14s linear infinite;
+}
+
+.bg-car-img {
+    width: 140px;
+    height: auto;
+    display: block;
+}
+
+@keyframes bg-street-car-drive {
+    0% {
+        left: -180px;
+        transform: scale(0.32);
+        opacity: 0;
+    }
+    10% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    100% {
+        left: 68vw;
+        transform: scale(0.32);
+        opacity: 0;
+    }
 }
 
 /* Footpath Live Walking Characters Following Curved Footpath Route */
