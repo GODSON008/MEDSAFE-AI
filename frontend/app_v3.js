@@ -344,6 +344,17 @@ function initAuthFlow() {
     const btnExitDoctorMode = document.getElementById('btn-exit-doctor-mode');
     const pageBtnDoctorLogout = document.getElementById('btn-page-doctor-logout');
 
+    // Ambulance Arrival & Open Doors Sequence
+    const imgClosed = document.getElementById('ambulance-img-closed');
+    const imgOpen = document.getElementById('ambulance-img-open');
+    if (imgClosed && imgOpen) {
+        setTimeout(() => {
+            imgClosed.style.display = 'none';
+            imgOpen.style.display = 'block';
+            if (authStage) authStage.classList.add('active');
+        }, 2600);
+    }
+
     // Global Logout Handler Setup (Always bound regardless of active session state)
     const handleGlobalLogout = () => {
         sessionStorage.removeItem('medsafe_jwt');

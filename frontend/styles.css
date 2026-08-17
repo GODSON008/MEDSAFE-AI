@@ -2073,7 +2073,7 @@ body.light-theme .btn-checkbox.btn-skip {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.15) 0%, rgba(2, 6, 23, 0.45) 100%), url('assets/hospital_exterior.jpg') no-repeat center center / cover;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(2, 6, 23, 0.4) 100%), url('assets/generic_hospital_exterior.jpg') no-repeat center center / cover;
     z-index: 9999;
     display: flex;
     justify-content: center;
@@ -2082,20 +2082,98 @@ body.light-theme .btn-checkbox.btn-skip {
     overflow: hidden;
 }
 
-/* Ambulance Drive-In Animation Wrapper */
+/* Footpath Live Walking Doctors & Pedestrians */
+.footpath-walking-layer {
+    position: absolute;
+    bottom: 18%;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.footpath-walker {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.doctor-avatar {
+    font-size: 14px;
+}
+
+.doctor-walker-1 {
+    bottom: 10px;
+    animation: walker-walk-right 16s linear infinite;
+}
+
+.doctor-walker-2 {
+    bottom: 30px;
+    animation: walker-walk-left 20s linear infinite;
+}
+
+.pedestrian-walker-1 {
+    bottom: 0px;
+    animation: walker-walk-right 24s linear infinite 4s;
+}
+
+.pedestrian-walker-2 {
+    bottom: 22px;
+    animation: walker-walk-left 18s linear infinite 2s;
+}
+
+@keyframes walker-walk-right {
+    0% {
+        left: -120px;
+        transform: scale(0.9);
+    }
+    50% {
+        transform: scale(0.95) translateY(-2px);
+    }
+    100% {
+        left: 105vw;
+        transform: scale(0.9);
+    }
+}
+
+@keyframes walker-walk-left {
+    0% {
+        left: 105vw;
+        transform: scale(0.9);
+    }
+    50% {
+        transform: scale(0.95) translateY(-2px);
+    }
+    100% {
+        left: -120px;
+        transform: scale(0.9);
+    }
+}
+
+/* Ambulance Drive-In Animation Wrapper (Stops at Hospital Gate & Opens Doors) */
 .ambulance-anim-wrapper {
     position: absolute;
-    bottom: 8%;
-    right: -300px;
-    z-index: 5;
+    bottom: 12%;
+    right: -320px;
+    z-index: 6;
     pointer-events: none;
-    animation: ambulance-drive-in 3.2s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: ambulance-drive-to-gate 2.6s cubic-bezier(0.25, 1, 0.5, 1) forwards;
 }
 
 .ambulance-vehicle {
     position: relative;
-    width: 260px;
-    filter: drop-shadow(0 15px 15px rgba(0,0,0,0.5));
+    width: 280px;
+    filter: drop-shadow(0 15px 20px rgba(0,0,0,0.6));
 }
 
 .ambulance-img {
@@ -2103,7 +2181,11 @@ body.light-theme .btn-checkbox.btn-skip {
     height: auto;
     display: block;
     border-radius: 8px;
-    mix-blend-mode: multiply;
+}
+
+.ambulance-open {
+    border-radius: 12px;
+    box-shadow: 0 0 25px rgba(239, 68, 68, 0.3);
 }
 
 /* Siren Light Flashes */
@@ -2131,29 +2213,29 @@ body.light-theme .btn-checkbox.btn-skip {
     animation-delay: 0.2s;
 }
 
-@keyframes ambulance-drive-in {
+@keyframes ambulance-drive-to-gate {
     0% {
-        right: -300px;
+        right: -320px;
         transform: scale(0.65) translateY(20px);
         opacity: 0;
     }
     15% {
         opacity: 1;
     }
-    75% {
-        right: 28%;
-        transform: scale(0.85) translateY(0);
+    80% {
+        right: 22%;
+        transform: scale(0.88) translateY(0);
     }
     100% {
-        right: 25%;
-        transform: scale(0.85) translateY(0);
-        opacity: 0.95;
+        right: 20%;
+        transform: scale(0.88) translateY(0);
+        opacity: 0.98;
     }
 }
 
 @keyframes siren-pulse {
     0% {
-        opacity: 0.2;
+        opacity: 0.25;
         transform: scale(0.8);
     }
     100% {

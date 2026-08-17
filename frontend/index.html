@@ -14,21 +14,41 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Identity Services (for Google Sign-In) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="stylesheet" href="styles.css?v=11">
+    <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body>
-    <!-- Login Screen & Pill Animation Overlay -->
+    <!-- Login Screen Overlay -->
     <div id="login-screen-overlay">
         <!-- Interactive Moving Decorations Layer -->
         <div id="login-bg-decorations" class="auth-bg-decorations"></div>
         
-        <!-- Animated Ambulance Drive-In Layer -->
+        <!-- Live Animated Walking Doctors & Pedestrians on Footpath -->
+        <div class="footpath-walking-layer">
+            <div class="footpath-walker doctor-walker-1">
+                <div class="walker-avatar doctor-avatar">⚕️</div>
+                <span class="walker-badge">Dr. Sarah</span>
+            </div>
+            <div class="footpath-walker doctor-walker-2">
+                <div class="walker-avatar doctor-avatar">👨‍⚕️</div>
+                <span class="walker-badge">Dr. Alex</span>
+            </div>
+            <div class="footpath-walker pedestrian-walker-1">
+                <div class="walker-avatar visitor-avatar">🚶‍♂️</div>
+                <span class="walker-badge">Visitor</span>
+            </div>
+            <div class="footpath-walker pedestrian-walker-2">
+                <div class="walker-avatar visitor-avatar">🚶‍♀️</div>
+                <span class="walker-badge">Patient</span>
+            </div>
+        </div>
+
+        <!-- Animated Ambulance Drive-In & Open Gate Layer -->
         <div id="ambulance-anim-wrapper" class="ambulance-anim-wrapper">
-            <div class="ambulance-vehicle">
-                <img src="assets/ambulance.png" alt="Emergency Ambulance" class="ambulance-img">
+            <div class="ambulance-vehicle" id="ambulance-vehicle-box">
+                <img src="assets/ambulance.png" alt="Emergency Ambulance" class="ambulance-img ambulance-closed" id="ambulance-img-closed">
+                <img src="assets/ambulance_open.png" alt="Ambulance Rear Doors Open" class="ambulance-img ambulance-open" id="ambulance-img-open" style="display: none;">
                 <div class="siren-flash siren-red"></div>
                 <div class="siren-flash siren-blue"></div>
-                <div class="headlight-beam"></div>
             </div>
         </div>
 
