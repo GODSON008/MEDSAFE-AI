@@ -2073,7 +2073,7 @@ body.light-theme .btn-checkbox.btn-skip {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: var(--login-bg);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.4), rgba(2, 6, 23, 0.55)), url('assets/hospital_corridor.jpg') no-repeat center center / cover;
     z-index: 9999;
     display: flex;
     justify-content: center;
@@ -2198,7 +2198,7 @@ body.light-theme .btn-checkbox.btn-skip {
     transform: translateY(20px);
     transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     pointer-events: none;
-    max-width: 420px;
+    max-width: 440px;
     width: 90%;
 }
 
@@ -2209,13 +2209,13 @@ body.light-theme .btn-checkbox.btn-skip {
 }
 
 .auth-card {
-    background: var(--auth-card-bg);
-    border: 1px solid var(--glass-card-border);
+    background: rgba(15, 23, 42, 0.78);
+    border: 1px solid rgba(56, 189, 248, 0.25);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    border-radius: var(--border-radius-lg);
+    border-radius: 20px;
     padding: 36px;
-    box-shadow: var(--auth-card-shadow);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 35px rgba(14, 165, 233, 0.2);
     position: relative;
     overflow: hidden;
 }
