@@ -2480,6 +2480,46 @@ body.light-theme .btn-checkbox.btn-skip {
     pointer-events: none;
 }
 
+/* Auth Form Options Row: Remember Me & Forgot Password */
+.auth-options-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 14px;
+    margin-bottom: 18px;
+    font-size: 12px;
+}
+
+.remember-me-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary, #94a3b8);
+    cursor: pointer;
+    font-weight: 500;
+    user-select: none;
+}
+
+.remember-me-label input[type="checkbox"] {
+    accent-color: var(--primary-cyan, #0ea5e9);
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.forgot-password-link {
+    color: #38bdf8;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+    color: #7dd3fc;
+    text-decoration: underline;
+}
+
 .auth-header {
     text-align: center;
     margin-bottom: 28px;

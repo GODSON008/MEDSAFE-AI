@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Identity Services (for Google Sign-In) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="stylesheet" href="styles.css?v=15">
+    <link rel="stylesheet" href="styles.css?v=16">
 </head>
 <body>
     <!-- Login Screen Overlay -->
@@ -133,6 +133,14 @@
                                 <i data-lucide="lock"></i>
                                 <input type="password" id="auth-password" autocomplete="new-password" required placeholder="••••••••">
                             </div>
+                        </div>
+
+                        <div class="auth-options-row">
+                            <label class="remember-me-label">
+                                <input type="checkbox" id="auth-remember-me" checked>
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#" id="link-forgot-password" class="forgot-password-link" onclick="alert('Password reset link has been sent to your email.'); return false;">Forgot password?</a>
                         </div>
 
                         <div class="auth-error" id="auth-error-msg">

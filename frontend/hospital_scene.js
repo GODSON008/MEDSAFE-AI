@@ -33,6 +33,18 @@
     window.addEventListener('resize', resize);
     resize();
 
+    // ── Animation Engine Configuration ───────────────────────────────────────
+    // Easily customize traffic speeds, car counts, park durations, and asset modes
+    const CONFIG = (window.HOSPITAL_SCENE_CONFIG = {
+        numBackgroundCars: 3,           // Number of looping street cars
+        carBaseSpeed: 2.2,             // Base speed for background road traffic
+        ambulanceSpeed: 3.5,           // Drive-in speed for emergency ambulance
+        ambulanceParkDurationMs: 2500, // Parked duration at entrance gate (ms)
+        pedestrianCount: 3,            // Number of sidewalk walking characters
+        enableStreetlights: true,      // Toggle glowing streetlight halos
+        enableClouds: true             // Toggle drifting sky clouds
+    });
+
     // ── Environmental State ───────────────────────────────────────────────────
     const clouds = [
         { x: width * 0.1, y: height * 0.12, r: 35, speed: 0.25 },
