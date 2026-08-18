@@ -1397,14 +1397,24 @@ function updateDashboardWidgets() {
             symContainer.innerHTML = '<p class="empty-state">No symptoms logged recently.</p>';
         } else {
             recentSym.forEach(s => {
+                const sev = parseInt(s.severity, 10) || 5;
+                const tier = sev <= 3 ? 'mild' : sev <= 7 ? 'moderate' : 'severe';
+                const label = sev <= 3 ? 'Mild' : sev <= 7 ? 'Moderate' : 'Severe';
+                const dateStr = s.logged_at ? s.logged_at.substring(0, 16) : 'Logged Recently';
+
                 const div = document.createElement('div');
                 div.className = 'symptom-summary-item';
                 div.innerHTML = `
-                    <div>
-                        <div class="sym-desc-txt">${escapeHTML(s.description)}</div>
-                        <div class="sym-time-txt">${s.logged_at ? s.logged_at.split(' ')[0] : 'Today'} | Severity: ${s.severity}/10</div>
+                    <div class="sym-info-summary">
+                        <div class="sym-icon-pill severity-${tier}">
+                            <i data-lucide="activity"></i>
+                        </div>
+                        <div>
+                            <div class="sym-desc-txt">${escapeHTML(s.description)}</div>
+                            <div class="sym-time-txt">${escapeHTML(dateStr)}</div>
+                        </div>
                     </div>
-                    <span class="badge-status severity-${s.severity <= 3 ? 'low' : s.severity <= 7 ? 'mid' : 'high'}">${s.severity}/10</span>
+                    <span class="badge-status severity-${tier}">${label} (${sev}/10)</span>
                 `;
                 symContainer.appendChild(div);
             });

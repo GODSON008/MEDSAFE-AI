@@ -611,7 +611,8 @@ def fallback_chat_processor(prompt: str, user_email: str = 'guest@medsafe.ai') -
     # 5. Log Symptom pattern
     # E.g. "dizzy after lunch, severity 3/10" or "I have a headache, severity 4"
     is_symptom = any(k in prompt_clean for k in ["symptom", "dizzy", "headache", "pain", "nausea", "feeling", "ache", "cough", "rash", "vomit", "fatigue", "tired"])
-    if is_symptom and not any(k in prompt_clean for k in ["what", "list", "show"]):
+    is_query = any(k in prompt_clean for k in ["what", "list", "show", "tell", "about", "how", "why", "explain", "describe", "info", "mean", "can", "should"])
+    if is_symptom and not is_query:
         # Find severity
         sev_match = re.search(r"\b([1-9]|10)\b", prompt_clean)
         severity = int(sev_match.group(1)) if sev_match else 5

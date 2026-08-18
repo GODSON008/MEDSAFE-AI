@@ -624,17 +624,26 @@ h1, h2, h3, h4, .logo-text {
     overflow-y: auto;
 }
 
-.checklist-summary-item {
+.checklist-summary-item,
+.symptom-summary-item {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: rgba(22, 26, 42, 0.3);
+    background-color: rgba(22, 26, 42, 0.4);
     padding: 12px 16px;
     border-radius: var(--border-radius-sm);
     border: 1px solid var(--glass-card-border);
+    transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
-.med-info-summary {
+.checklist-summary-item:hover,
+.symptom-summary-item:hover {
+    background-color: rgba(30, 36, 58, 0.5);
+    border-color: rgba(56, 189, 248, 0.25);
+}
+
+.med-info-summary,
+.sym-info-summary {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -644,14 +653,53 @@ h1, h2, h3, h4, .logo-text {
     color: var(--primary-cyan);
 }
 
-.med-name-txt {
-    font-weight: var(--font-weight-subheader);
-    font-size: 14px;
+.sym-icon-pill {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
 }
 
-.med-schedule-txt {
-    font-size: 11px;
+.sym-icon-pill i,
+.sym-icon-pill svg {
+    width: 16px;
+    height: 16px;
+}
+
+.sym-icon-pill.severity-mild {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.sym-icon-pill.severity-moderate {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.sym-icon-pill.severity-severe {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.med-name-txt,
+.sym-desc-txt {
+    font-weight: var(--font-weight-subheader);
+    font-size: 14px;
+    text-transform: capitalize;
+    color: var(--text-primary);
+}
+
+.med-schedule-txt,
+.sym-time-txt {
+    font-size: 11.5px;
     color: var(--text-muted);
+    margin-top: 2px;
 }
 
 .badge-status {
@@ -660,21 +708,48 @@ h1, h2, h3, h4, .logo-text {
     font-size: 11px;
     font-weight: var(--font-weight-subheader);
     text-transform: capitalize;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
 }
 
 .badge-status.taken {
     background-color: rgba(16, 185, 129, 0.15);
     color: var(--emerald-cyan);
+    border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .badge-status.skipped {
     background-color: rgba(239, 68, 68, 0.15);
     color: var(--danger-red);
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .badge-status.pending {
     background-color: rgba(245, 158, 11, 0.12);
     color: var(--amber-warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-status.severity-mild,
+.badge-status.severity-low {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.badge-status.severity-moderate,
+.badge-status.severity-mid {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-status.severity-severe,
+.badge-status.severity-high {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 /* Quick safety check area */
