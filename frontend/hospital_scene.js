@@ -462,8 +462,6 @@
         drawClouds();
         drawHospitalBuilding();
         drawGroundAndRoads();
-        drawBackgroundCars();
-        drawPedestrians();
         drawAmbulance();
 
         requestAnimationFrame(animate);
