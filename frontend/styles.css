@@ -2085,16 +2085,18 @@ body.light-theme .btn-checkbox.btn-skip {
 /* Full-Screen Background Video */
 #login-bg-video {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    min-width: 100%;
-    min-height: 100%;
-    width: auto;
-    height: auto;
-    transform: translate(-50%, -50%);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     z-index: 0;
     pointer-events: none;
+    /* GPU acceleration — eliminates video lag/jank */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 }
 
 /* Dark gradient overlay on top of video for text readability */
