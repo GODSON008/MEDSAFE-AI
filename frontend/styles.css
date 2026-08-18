@@ -2235,12 +2235,8 @@ body.light-theme .btn-checkbox.btn-skip {
     }
 }
 
-/* 3D Ambulance Drive-In Animation along Curved Asphalt Road */
 .ambulance-anim-wrapper {
-    position: absolute;
-    z-index: 6;
-    pointer-events: none;
-    animation: ambulance-road-drive 2.6s cubic-bezier(0.25, 0.9, 0.4, 1) forwards;
+    display: none !important;
 }
 
 .ambulance-vehicle {
