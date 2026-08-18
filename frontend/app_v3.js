@@ -465,6 +465,8 @@ function initAuthFlow() {
         
         const overlay = document.getElementById('login-screen-overlay');
         if (overlay) overlay.style.display = 'none';
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) { appContainer.style.visibility = 'visible'; appContainer.style.opacity = '1'; }
         
         const doctorBanner = document.getElementById('doctor-mode-banner');
         if (doctorBanner) doctorBanner.style.display = 'none';
@@ -722,10 +724,14 @@ function initAuthFlow() {
             } else if (payload.is_doctor && payload.patient_id) {
                 applyUserSession({ username: payload.name || 'Patient', email: payload.sub, provider: 'doctor', patient_id: payload.patient_id, is_doctor: true, unlocked_patient: true });
                 overlay.style.display = 'none';
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) { appContainer.style.visibility = 'visible'; appContainer.style.opacity = '1'; }
                 refreshData();
             } else {
                 applyUserSession({ username: payload.name || 'User', email: payload.sub, provider: payload.provider, patient_id: payload.patient_id, is_doctor: false });
                 overlay.style.display = 'none';
+                const appContainer = document.getElementById('app-container');
+                if (appContainer) { appContainer.style.visibility = 'visible'; appContainer.style.opacity = '1'; }
                 refreshData();
             }
             return;
@@ -944,6 +950,13 @@ function initAuthFlow() {
         overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.style.display = 'none';
+            // Reveal the main app (was hidden to prevent flash of content)
+            const appContainer = document.getElementById('app-container');
+            if (appContainer) {
+                appContainer.style.visibility = 'visible';
+                appContainer.style.opacity = '1';
+                appContainer.style.transition = 'opacity 0.4s ease';
+            }
             showStatusNotification(`Welcome to MedSafe AI!`, 'success');
         }, 800);
         refreshData();

@@ -15,6 +15,17 @@
     <!-- Google Identity Services (for Google Sign-In) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="styles.css?v=20">
+    <!-- Critical: prevent flash of app content before auth check -->
+    <style>
+        /* Hide app immediately — shown only after auth passes via JS */
+        .app-container { visibility: hidden; opacity: 0; }
+        /* Lock login overlay visible from first paint, before styles.css loads */
+        #login-screen-overlay {
+            position: fixed; inset: 0;
+            z-index: 9999;
+            background: #0f172a;
+        }
+    </style>
 </head>
 <body>
     <!-- Login Screen Overlay -->
@@ -169,7 +180,7 @@
         </div>
     </div>
 
-    <div class="app-container">
+    <div class="app-container" id="app-container">
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
