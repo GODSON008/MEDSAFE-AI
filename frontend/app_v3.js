@@ -899,12 +899,14 @@ function initAuthFlow() {
     });
 
     // ── Guest Sign-In ────────────────────────────────────────────────────────
-    btnGuest.addEventListener('click', () => {
-        // Guest uses no JWT — the interceptor sends no auth header → backend returns guest data
-        sessionStorage.removeItem('medsafe_jwt');
-        applyUserSession({ username: 'Guest User', email: 'guest@medsafe.ai', provider: 'guest' });
-        dismissOverlay();
-    });
+    if (btnGuest) {
+        btnGuest.addEventListener('click', () => {
+            // Guest uses no JWT — the interceptor sends no auth header → backend returns guest data
+            sessionStorage.removeItem('medsafe_jwt');
+            applyUserSession({ username: 'Guest User', email: 'guest@medsafe.ai', provider: 'guest' });
+            dismissOverlay();
+        });
+    }
 
     // ── Logout ───────────────────────────────────────────────────────────────
     if (btnLogout) {
@@ -947,18 +949,23 @@ function initAuthFlow() {
     }
 
     function dismissOverlay() {
+        // Reveal main app immediately
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) {
+            appContainer.style.visibility = 'visible';
+            appContainer.style.opacity = '1';
+            appContainer.style.transition = 'opacity 0.4s ease';
+        }
+
         overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.style.display = 'none';
-            // Reveal the main app (was hidden to prevent flash of content)
-            const appContainer = document.getElementById('app-container');
-            if (appContainer) {
-                appContainer.style.visibility = 'visible';
-                appContainer.style.opacity = '1';
-                appContainer.style.transition = 'opacity 0.4s ease';
+            if (window.lucide && lucide.createIcons) {
+                lucide.createIcons();
             }
             showStatusNotification(`Welcome to MedSafe AI!`, 'success');
-        }, 800);
+        }, 400);
+
         refreshData();
     }
 }
