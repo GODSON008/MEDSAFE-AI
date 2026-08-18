@@ -118,147 +118,166 @@
         const bW = width * 0.7;
         const bX = (width - bW) / 2;
 
-        // Main Hospital Block Shadow
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.08)';
-        ctx.fillRect(bX - 10, bY + 10, bW + 20, bH);
+    // ── Draw Hospital Building ────────────────────────────────────────────────
+    function drawHospitalBuilding() {
+        const bY = height * 0.18;
+        const bH = height * 0.46;
+        const bW = width * 0.78;
+        const bX = (width - bW) / 2;
 
-        // Main Structure
-        ctx.fillStyle = '#f8fafc'; // Crisp off-white
+        // Main Hospital Block Shadow
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.1)';
+        ctx.fillRect(bX - 12, bY + 12, bW + 24, bH);
+
+        // Main Structure Body
+        ctx.fillStyle = '#f8fafc'; // Crisp healthcare white
         ctx.fillRect(bX, bY, bW, bH);
 
-        // Architectural Accents (Slate borders)
-        ctx.fillStyle = '#0284c7'; // Medical Primary Cyan
-        ctx.fillRect(bX, bY, bW, 12);
+        // Top Roof Accent & Parapet (Medical Cyan)
+        ctx.fillStyle = '#0284c7';
+        ctx.fillRect(bX, bY, bW, 16);
 
         // Windows Grid
-        ctx.fillStyle = 'rgba(14, 165, 233, 0.25)';
+        ctx.fillStyle = 'rgba(14, 165, 233, 0.35)';
         const rows = 5;
-        const cols = 12;
-        const wW = (bW - 60) / cols;
-        const wH = (bH - 120) / rows;
+        const cols = 14;
+        const wW = (bW - 80) / cols;
+        const wH = (bH - 130) / rows;
 
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
-                const wx = bX + 30 + c * wW + c * 2;
-                const wy = bY + 40 + r * wH + r * 6;
+                const wx = bX + 40 + c * wW + c * 2;
+                const wy = bY + 45 + r * wH + r * 6;
                 ctx.fillRect(wx, wy, wW - 4, wH - 4);
 
-                // Window highlight line
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-                ctx.fillRect(wx, wy, (wW - 4) * 0.4, 2);
-                ctx.fillStyle = 'rgba(14, 165, 233, 0.25)';
+                // Window glass glare highlight
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+                ctx.fillRect(wx, wy, (wW - 4) * 0.45, 2);
+                ctx.fillStyle = 'rgba(14, 165, 233, 0.35)';
             }
         }
 
-        // Entrance Canopy (Glass Center)
-        const cW = bW * 0.35;
+        // Entrance Center Canopy
+        const cW = bW * 0.38;
         const cX = bX + (bW - cW) / 2;
-        const cY = bY + bH - 60;
+        const cY = bY + bH - 65;
 
         ctx.fillStyle = '#e2e8f0';
-        ctx.fillRect(cX, cY, cW, 60);
+        ctx.fillRect(cX, cY, cW, 65);
 
-        // Header Sign: "+ CITY HOSPITAL"
-        const sW = cW * 0.9;
+        // Building Sign: "+ CITY HOSPITAL"
+        const sW = cW * 0.92;
         const sX = cX + (cW - sW) / 2;
-        const sY = cY - 28;
+        const sY = cY - 32;
 
         ctx.fillStyle = '#0284c7';
-        ctx.fillRect(sX, sY, sW, 28);
+        ctx.fillRect(sX, sY, sW, 32);
 
-        // Red Cross Logo
+        // Red Medical Cross Logo
         ctx.fillStyle = '#ef4444';
-        ctx.fillRect(sX + 15, sY + 6, 16, 16);
+        ctx.fillRect(sX + 16, sY + 7, 18, 18);
         ctx.fillStyle = '#ffffff';
-        ctx.fillRect(sX + 20, sY + 8, 6, 12);
-        ctx.fillRect(sX + 17, sY + 11, 12, 6);
+        ctx.fillRect(sX + 22, sY + 9, 6, 14);
+        ctx.fillRect(sX + 18, sY + 13, 14, 6);
 
-        // Hospital Text
+        // Hospital Sign Text
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 13px Outfit, Inter, sans-serif';
-        ctx.fillText('CITY HOSPITAL', sX + 40, sY + 19);
+        ctx.font = 'bold 15px Outfit, Inter, sans-serif';
+        ctx.fillText('CITY HOSPITAL', sX + 44, sY + 22);
 
-        // Entrance Glass Automatic Doors
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.7)';
-        ctx.fillRect(cX + 20, cY + 10, cW - 40, 50);
+        // Glass Automatic Doors
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
+        ctx.fillRect(cX + 24, cY + 12, cW - 48, 53);
 
         ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 1.5;
-        ctx.strokeRect(cX + 20, cY + 10, cW - 40, 50);
+        ctx.lineWidth = 2;
+        ctx.strokeRect(cX + 24, cY + 12, cW - 48, 53);
         ctx.beginPath();
-        ctx.moveTo(cX + cW / 2, cY + 10);
-        ctx.lineTo(cX + cW / 2, cY + 60);
+        ctx.moveTo(cX + cW / 2, cY + 12);
+        ctx.lineTo(cX + cW / 2, cY + 65);
         ctx.stroke();
     }
 
-    // ── Draw Grounds, Roads & Parking ─────────────────────────────────────────
+    // ── Draw Grounds & Long Straight Horizontal Road ──────────────────────────
     function drawGroundAndRoads() {
-        const rY1 = height * 0.64; // Background street road
-        const rY2 = height * 0.78; // Main driveway road
+        const rY1 = height * 0.65; // Background upper street
+        const rY2 = height * 0.76; // Long Straight Horizontal Road
 
-        // Grass & Landscaping
-        ctx.fillStyle = '#86efac'; // Soft spring green grass
-        ctx.fillRect(0, height * 0.6, width, height * 0.4);
+        // Lawn & Garden Ground
+        ctx.fillStyle = '#86efac'; // Fresh healthcare spring green
+        ctx.fillRect(0, height * 0.62, width, height * 0.38);
 
-        // Parking Bay & Sidewalk Tiles
+        // Sidewalk Paving Tiles (Straight horizontal path)
         ctx.fillStyle = '#cbd5e1';
-        ctx.fillRect(0, rY1 - 20, width, 20);
-        ctx.fillRect(0, rY2 - 25, width, 25);
+        ctx.fillRect(0, rY2 - 28, width, 28);
+        // Tile Grid Lines
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1;
+        for (let sx = 0; sx < width; sx += 40) {
+            ctx.beginPath();
+            ctx.moveTo(sx, rY2 - 28);
+            ctx.lineTo(sx, rY2);
+            ctx.stroke();
+        }
 
-        // Background Street Road
+        // Upper Background Street
         ctx.fillStyle = '#475569';
-        ctx.fillRect(0, rY1, width, 35);
-        // Dashed Lane Line
-        ctx.strokeStyle = '#f8fafc';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([15, 15]);
+        ctx.fillRect(0, rY1, width, 30);
+
+        // LONG STRAIGHT HORIZONTAL MAIN ROAD (Spans 100% of viewport width)
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(0, rY2, width, 75);
+
+        // Double Solid Yellow Center Line
+        ctx.strokeStyle = '#facc15';
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.moveTo(0, rY1 + 17);
-        ctx.lineTo(width, rY1 + 17);
+        ctx.moveTo(0, rY2 + 35);
+        ctx.lineTo(width, rY2 + 35);
+        ctx.moveTo(0, rY2 + 39);
+        ctx.lineTo(width, rY2 + 39);
+        ctx.stroke();
+
+        // White Dashed Lane Lines
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([20, 20]);
+        ctx.beginPath();
+        ctx.moveTo(0, rY2 + 18);
+        ctx.lineTo(width, rY2 + 18);
+        ctx.moveTo(0, rY2 + 56);
+        ctx.lineTo(width, rY2 + 56);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // Main Hospital Driveway Road
-        ctx.fillStyle = '#334155';
-        ctx.fillRect(0, rY2, width, 65);
-        // Yellow Curb / Double Solid Line
-        ctx.strokeStyle = '#facc15';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, rY2 + 32);
-        ctx.lineTo(width, rY2 + 32);
-        ctx.stroke();
-
-        // Streetlights along road
-        const lightPositions = [width * 0.1, width * 0.35, width * 0.65, width * 0.9];
+        // Streetlights along straight horizontal road
+        const lightPositions = [width * 0.08, width * 0.32, width * 0.55, width * 0.78, width * 0.95];
         lightPositions.forEach(lx => {
-            // Pole
+            // Metallic Pole
             ctx.fillStyle = '#64748b';
-            ctx.fillRect(lx, rY2 - 45, 4, 45);
-            // Lamp Fixture
-            ctx.fillRect(lx - 4, rY2 - 50, 12, 5);
-            // Soft Light Halo
-            const lGrad = ctx.createRadialGradient(lx + 2, rY2 - 47, 2, lx + 2, rY2 - 47, 25);
-            lGrad.addColorStop(0, 'rgba(254, 240, 138, 0.8)');
+            ctx.fillRect(lx, rY2 - 55, 5, 55);
+            // Lamp Head
+            ctx.fillRect(lx - 6, rY2 - 60, 16, 6);
+            // Glowing Light Halo
+            const lGrad = ctx.createRadialGradient(lx + 2, rY2 - 57, 2, lx + 2, rY2 - 57, 28);
+            lGrad.addColorStop(0, 'rgba(254, 240, 138, 0.85)');
             lGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
             ctx.fillStyle = lGrad;
-            ctx.fillRect(lx - 25, rY2 - 60, 54, 54);
+            ctx.fillRect(lx - 28, rY2 - 70, 60, 60);
         });
 
-        // Trees
-        const treePositions = [width * 0.05, width * 0.22, width * 0.78, width * 0.93];
+        // Trees & Cherry Blossom Bushes
+        const treePositions = [width * 0.04, width * 0.2, width * 0.75, width * 0.92];
         treePositions.forEach(tx => {
-            // Trunk
             ctx.fillStyle = '#78350f';
-            ctx.fillRect(tx, rY1 - 40, 8, 25);
-            // Foliage
+            ctx.fillRect(tx, rY1 - 42, 9, 28);
             ctx.fillStyle = '#22c55e';
             ctx.beginPath();
-            ctx.arc(tx + 4, rY1 - 45, 20, 0, Math.PI * 2);
+            ctx.arc(tx + 4, rY1 - 48, 22, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#16a34a';
             ctx.beginPath();
-            ctx.arc(tx - 4, rY1 - 40, 15, 0, Math.PI * 2);
+            ctx.arc(tx - 5, rY1 - 42, 16, 0, Math.PI * 2);
             ctx.fill();
         });
     }
@@ -300,8 +319,8 @@
     }
 
     function drawAmbulance() {
-        const aY = height * 0.8;
-        ambulance.targetX = width * 0.48; // Main entrance gate
+        const aY = height * 0.775;
+        ambulance.targetX = width * 0.48; // Main entrance gate center
 
         // State Machine Step
         if (ambulance.state === 'DRIVING_IN') {
