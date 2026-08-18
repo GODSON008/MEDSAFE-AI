@@ -1280,6 +1280,57 @@ async function fetchAdherence() {
     }
 }
 
+// Helper to retrieve and synchronize scheduled doses for any given date with active medications
+function getDosesForDate(targetDate) {
+    if (!targetDate) targetDate = formatYMD(new Date());
+
+    // 1. Get existing adherence records for targetDate from appState.adherence
+    const existingDoses = appState.adherence.filter(h => {
+        if (!h.scheduled_time || !h.scheduled_time.startsWith(targetDate)) return false;
+        // Exclude pending doses for discontinued/inactive medications
+        if (h.medication_is_active === 0 && h.status === 'pending') return false;
+        return true;
+    });
+
+    const existingMedIds = new Set(existingDoses.map(d => d.medication_id));
+
+    // 2. Synchronize with appState.medications: ensure every active medication is represented
+    const activeMeds = (appState.medications || []).filter(m => m.is_active === 1 || m.is_active === undefined || m.is_active === null);
+
+    const mergedDoses = [...existingDoses];
+
+    activeMeds.forEach(med => {
+        if (!existingMedIds.has(med.id)) {
+            const medStart = med.start_date ? med.start_date.substring(0, 10) : '2000-01-01';
+            if (targetDate >= medStart) {
+                const timeOfDay = med.time_of_day || '08:00';
+                const scheduledTime = `${targetDate} ${timeOfDay}`;
+                const tempDose = {
+                    id: `temp_${med.id}_${targetDate}`,
+                    medication_id: med.id,
+                    medication_name: med.name,
+                    medication_dosage: med.dosage,
+                    medication_time_of_day: timeOfDay,
+                    scheduled_time: scheduledTime,
+                    status: 'pending',
+                    taken_at: null,
+                    medication_is_active: 1
+                };
+                mergedDoses.push(tempDose);
+            }
+        }
+    });
+
+    // 3. Sort chronologically by scheduled time
+    mergedDoses.sort((a, b) => {
+        const timeA = (a.medication_time_of_day || (a.scheduled_time ? a.scheduled_time.split(' ')[1] : '') || '08:00');
+        const timeB = (b.medication_time_of_day || (b.scheduled_time ? b.scheduled_time.split(' ')[1] : '') || '08:00');
+        return timeA.localeCompare(timeB);
+    });
+
+    return mergedDoses;
+}
+
 // Dashboard Widgets Update
 function updateDashboardWidgets() {
     // Calculate compliance rate (taken / total scheduled in past 7 days)
@@ -1294,71 +1345,72 @@ function updateDashboardWidgets() {
     
     // Set circle progress ring
     const circle = document.getElementById('compliance-ring');
-    const radius = circle.r.baseVal.value;
-    const circumference = radius * 2 * Math.PI;
-    circle.style.strokeDasharray = `${circumference} ${circumference}`;
-    const offset = circumference - (rate / 100) * circumference;
-    circle.style.strokeDashoffset = offset;
-
-    // Set Allergy count
-    document.getElementById('stat-allergies-count').textContent = appState.allergies.length;
-
-    // Load Today's Scheduled Checklist Doses on Dashboard
-    const today = new Date().toISOString().split('T')[0];
-    const todayDoses = appState.adherence.filter(h => h.scheduled_time.startsWith(today));
-    
-    const container = document.getElementById('dash-today-checklist');
-    container.innerHTML = '';
-    
-    if (todayDoses.length === 0) {
-        container.innerHTML = '<p class="empty-state">No medications scheduled for today.</p>';
-        return;
+    if (circle && circle.r) {
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        const offset = circumference - (rate / 100) * circumference;
+        circle.style.strokeDashoffset = offset;
     }
 
-    todayDoses.forEach(dose => {
-        const div = document.createElement('div');
-        div.className = 'checklist-summary-item';
-        div.innerHTML = `
-            <div class="med-info-summary">
-                <i data-lucide="pill"></i>
-                <div>
-                    <div class="med-name-txt">${dose.medication_name} ${dose.medication_dosage}</div>
-                    <div class="med-schedule-txt">Scheduled: ${dose.medication_time_of_day}</div>
-                </div>
-            </div>
-            <span class="badge-status ${dose.status}">${dose.status}</span>
-        `;
-        container.appendChild(div);
-    });
-    lucide.createIcons();
+    // Set Allergy count
+    const allergyCountEl = document.getElementById('stat-allergies-count');
+    if (allergyCountEl) allergyCountEl.textContent = (appState.allergies || []).length;
+
+    // Load Today's Scheduled Checklist Doses on Dashboard (Synchronized with active medications)
+    const today = formatYMD(new Date());
+    const todayDoses = getDosesForDate(today);
+    
+    const container = document.getElementById('dash-today-checklist');
+    if (container) {
+        container.innerHTML = '';
+        
+        if (todayDoses.length === 0) {
+            container.innerHTML = '<p class="empty-state">No medications scheduled for today.</p>';
+        } else {
+            todayDoses.forEach(dose => {
+                const div = document.createElement('div');
+                div.className = 'checklist-summary-item';
+                div.innerHTML = `
+                    <div class="med-info-summary">
+                        <i data-lucide="pill"></i>
+                        <div>
+                            <div class="med-name-txt">${escapeHTML(dose.medication_name)} ${escapeHTML(dose.medication_dosage)}</div>
+                            <div class="med-schedule-txt">Scheduled: ${escapeHTML(dose.medication_time_of_day || '08:00')}</div>
+                        </div>
+                    </div>
+                    <span class="badge-status ${dose.status}">${dose.status}</span>
+                `;
+                container.appendChild(div);
+            });
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }
+    }
 
     // Load Recent Symptoms list on Dashboard
     const symContainer = document.getElementById('dash-recent-symptoms');
-    symContainer.innerHTML = '';
-    const recentSym = appState.symptoms.slice(0, 3);
-    
-    if (recentSym.length === 0) {
-        symContainer.innerHTML = '<p class="empty-state">No symptoms logged recently.</p>';
-        return;
+    if (symContainer) {
+        symContainer.innerHTML = '';
+        const recentSym = (appState.symptoms || []).slice(0, 3);
+        
+        if (recentSym.length === 0) {
+            symContainer.innerHTML = '<p class="empty-state">No symptoms logged recently.</p>';
+        } else {
+            recentSym.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'symptom-summary-item';
+                div.innerHTML = `
+                    <div>
+                        <div class="sym-desc-txt">${escapeHTML(s.description)}</div>
+                        <div class="sym-time-txt">${s.logged_at ? s.logged_at.split(' ')[0] : 'Today'} | Severity: ${s.severity}/10</div>
+                    </div>
+                    <span class="badge-status severity-${s.severity <= 3 ? 'low' : s.severity <= 7 ? 'mid' : 'high'}">${s.severity}/10</span>
+                `;
+                symContainer.appendChild(div);
+            });
+        }
     }
-
-    recentSym.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'checklist-summary-item';
-        const severityClass = s.severity <= 3 ? 'mild' : (s.severity <= 7 ? 'moderate' : 'severe');
-        div.innerHTML = `
-            <div class="med-info-summary">
-                <i data-lucide="activity" style="color: var(--danger-red);"></i>
-                <div>
-                    <div class="med-name-txt">${s.description}</div>
-                    <div class="med-schedule-txt">${s.logged_at}</div>
-                </div>
-            </div>
-            <span class="badge-status ${severityClass}">Severity ${s.severity}/10</span>
-        `;
-        symContainer.appendChild(div);
-    });
-    lucide.createIcons();
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
 
 // Helper for local YYYY-MM-DD date string
@@ -1469,7 +1521,7 @@ function updateChecklistUI() {
     if (!listContainer) return;
     listContainer.innerHTML = '';
 
-    const targetDate = appState.selectedDate;
+    const targetDate = appState.selectedDate || formatYMD(new Date());
 
     // Update Date Header Title
     const titleEl = document.getElementById('checklist-date-title');
@@ -1480,7 +1532,8 @@ function updateChecklistUI() {
         titleEl.textContent = `Adherence Checklist: ${dateFormatted}`;
     }
 
-    const doses = appState.adherence.filter(h => h.scheduled_time && h.scheduled_time.startsWith(targetDate));
+    // Doses synchronized with all active medications
+    const doses = getDosesForDate(targetDate);
 
     if (doses.length === 0) {
         listContainer.innerHTML = `<p class="empty-state">No scheduled doses found for ${targetDate}. Pick another date or schedule a medication.</p>`;
@@ -1528,11 +1581,12 @@ function updateChecklistUI() {
             }
         } else {
             // Today & Future days show interactive action buttons for patient
+            const doseIdParam = typeof dose.id === 'string' ? `'${dose.id}'` : dose.id;
             actionsHTML = `
-                <button class="btn-checkbox btn-take ${isTaken ? 'taken' : ''}" onclick="toggleDoseStatus(${dose.id}, 'taken')" title="Mark as Taken">
+                <button class="btn-checkbox btn-take ${isTaken ? 'taken' : ''}" onclick="toggleDoseStatus(${doseIdParam}, 'taken')" title="Mark as Taken">
                     <i data-lucide="check"></i>
                 </button>
-                <button class="btn-checkbox btn-skip ${isSkipped ? 'skipped' : ''}" onclick="toggleDoseStatus(${dose.id}, 'skipped')" title="Mark as Skipped">
+                <button class="btn-checkbox btn-skip ${isSkipped ? 'skipped' : ''}" onclick="toggleDoseStatus(${doseIdParam}, 'skipped')" title="Mark as Skipped">
                     <i data-lucide="x"></i>
                 </button>
             `;
@@ -1540,7 +1594,7 @@ function updateChecklistUI() {
 
         item.innerHTML = `
             <div class="checklist-left">
-                <span class="time-slot">${dose.medication_time_of_day || ''}</span>
+                <span class="time-slot">${escapeHTML(dose.medication_time_of_day || '08:00')}</span>
                 <div class="check-med-details">
                     <h4>${escapeHTML(dose.medication_name)} ${escapeHTML(dose.medication_dosage)}</h4>
                     <span style="${isPastDate && !isTaken ? 'color:#f87171; font-weight:600;' : ''}">${statusLabel}</span>
@@ -1552,7 +1606,7 @@ function updateChecklistUI() {
         `;
         listContainer.appendChild(item);
     });
-    if (window.lucide) lucide.createIcons();
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
 
 
@@ -1562,8 +1616,25 @@ async function toggleDoseStatus(adherenceId, targetStatus) {
         showNotification("Doctor View Mode: Doctors can view patient calendar & adherence logs, but cannot edit or log patient doses.", "warning");
         return;
     }
+
+    // Refresh adherence from backend to ensure slot exists if temp ID
+    if (typeof adherenceId === 'string' && adherenceId.startsWith('temp_')) {
+        await fetchAdherence();
+        const parts = adherenceId.split('_');
+        const medId = parseInt(parts[1], 10);
+        const dateStr = parts[2];
+        const match = appState.adherence.find(h => h.medication_id === medId && h.scheduled_time && h.scheduled_time.startsWith(dateStr));
+        if (match) {
+            adherenceId = match.id;
+        }
+    }
+
     const item = appState.adherence.find(h => h.id === adherenceId);
-    if (!item) return;
+    if (!item) {
+        // Fallback: re-fetch and re-render
+        await refreshData();
+        return;
+    }
     
     // Toggle action: if already in targetStatus, set back to pending
     const oldStatus = item.status;

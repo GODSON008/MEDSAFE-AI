@@ -583,8 +583,8 @@ def get_adherence_endpoint(current_user: AuthenticatedUser = Depends(get_current
     conn = get_connection()
     cursor = conn.cursor()
 
-    # Ensure adherence slots exist for active medications over the last 180 days (6 months) up to +60 days in future
-    cursor.execute("SELECT id, start_date, time_of_day FROM medications WHERE user_email = ? AND (is_active = 1 OR is_active IS NULL)", (current_user.email,))
+    # Ensure adherence slots exist for all active medications
+    cursor.execute("SELECT id, name, dosage, start_date, time_of_day, frequency FROM medications WHERE user_email = ? AND (is_active = 1 OR is_active IS NULL)", (current_user.email,))
     meds = cursor.fetchall()
 
     today_date = datetime.date.today()
@@ -594,14 +594,14 @@ def get_adherence_endpoint(current_user: AuthenticatedUser = Depends(get_current
     for med in meds:
         med_id = med["id"]
         med_time = med["time_of_day"] if med["time_of_day"] else "08:00"
-        med_start = med["start_date"] if med["start_date"] else start_window.isoformat()
+        med_start = med["start_date"] if med["start_date"] else today_date.isoformat()
         try:
             m_start_dt = datetime.date.fromisoformat(med_start[:10])
         except Exception:
             m_start_dt = start_window
 
-        # Start slots from earliest window or med start date
-        gen_start = min(start_window, m_start_dt)
+        # Start slots from earliest between 180 days ago and medication start date
+        gen_start = max(start_window, m_start_dt)
         curr = gen_start
         while curr <= end_window:
             sch_time = f"{curr.isoformat()} {med_time}"
@@ -620,7 +620,7 @@ def get_adherence_endpoint(current_user: AuthenticatedUser = Depends(get_current
     SELECT a.*, m.name as medication_name, m.dosage as medication_dosage, m.time_of_day as medication_time_of_day, m.is_active as medication_is_active
     FROM adherence a
     JOIN medications m ON a.medication_id = m.id
-    WHERE m.user_email = ?
+    WHERE m.user_email = ? AND (m.is_active = 1 OR m.is_active IS NULL OR a.status IN ('taken', 'skipped'))
     ORDER BY a.scheduled_time ASC
     """, (current_user.email,))
     adherence = [dict(row) for row in cursor.fetchall()]
