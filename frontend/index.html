@@ -19,22 +19,17 @@
 <body>
     <!-- Login Screen Overlay -->
     <div id="login-screen-overlay">
+        <!-- Full-Screen Background Video -->
+        <video id="login-bg-video" autoplay muted loop playsinline>
+            <source src="assets/hospital.mp4" type="video/mp4">
+        </video>
+        <!-- Dark overlay on top of video for readability -->
+        <div id="login-video-overlay"></div>
+
         <!-- Interactive Moving Decorations Layer -->
         <div id="login-bg-decorations" class="auth-bg-decorations"></div>
 
-        <!-- Giant Scaling Stethoscope Reveal -->
-        <div id="intro-stethoscope" class="intro-stethoscope" style="display: none;">
-            <i data-lucide="stethoscope"></i>
-        </div>
-        <!-- Stage 1: Pill Splitting Animation (Hidden by default to prevent stuck screen) -->
-        <div class="intro-stage" id="intro-stage" style="display: none;">
-            <div class="pill-animation-container" id="pill-anim-container">
-                <div class="pill-piece pill-left"></div>
-                <div class="pill-piece pill-middle"></div>
-                <div class="pill-piece pill-right"></div>
-            </div>
-            <h2 class="intro-title">MedSafe AI</h2>
-        </div>
+
 
         <!-- Stage 2: Glassmorphic Auth Form -->
         <div class="auth-stage active" id="auth-stage">
@@ -941,7 +936,7 @@
         </div>
     </div>
 
-    <script src="hospital_scene.js?v=1"></script>
+
     <script src="app_v3.js?v=24"></script>
 </body>
 </html>

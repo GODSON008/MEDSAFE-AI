@@ -2073,13 +2073,42 @@ body.light-theme .btn-checkbox.btn-skip {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: linear-gradient(180deg, rgba(15, 23, 42, 0.1) 0%, rgba(2, 6, 23, 0.4) 100%), url('assets/city_hospital.jpg') no-repeat center center / cover;
+    background: #0f172a; /* Fallback while video loads */
     z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
+}
+
+/* Full-Screen Background Video */
+#login-bg-video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    transform: translate(-50%, -50%);
+    object-fit: cover;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Dark gradient overlay on top of video for text readability */
+#login-video-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(2, 6, 23, 0.72) 0%,
+        rgba(15, 23, 42, 0.55) 50%,
+        rgba(2, 6, 23, 0.72) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
 }
 
 /* Background Street Road Traffic Layer (Sedan Cars) */
@@ -2738,7 +2767,7 @@ body.light-theme .btn-checkbox.btn-skip {
     height: 100%;
     pointer-events: none;
     overflow: hidden;
-    z-index: 1;
+    z-index: 2;
     opacity: 0;
     transition: opacity 1.5s ease-in-out;
 }
