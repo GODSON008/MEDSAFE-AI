@@ -925,9 +925,19 @@ function initAuthFlow() {
     function triggerPillIntroSequence() {
         const stethoscope = document.getElementById('intro-stethoscope');
         if (stethoscope) stethoscope.classList.remove('reveal', 'fade-out');
-        // Show login card immediately to avoid LCP delay
-        introStage.style.display = 'none';
+        // Show login card immediately (introStage removed — video background replaces it)
+        if (introStage) introStage.style.display = 'none';
         authStage.classList.add('active');
+
+        // Start background video playback (handles autoplay policy)
+        const bgVideo = document.getElementById('login-bg-video');
+        if (bgVideo) {
+            bgVideo.play().catch(() => {
+                // Autoplay blocked — play on first user interaction
+                const playOnClick = () => { bgVideo.play(); document.removeEventListener('click', playOnClick); };
+                document.addEventListener('click', playOnClick, { once: true });
+            });
+        }
     }
 
     function dismissOverlay() {
