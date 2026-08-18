@@ -957,6 +957,8 @@ function initAuthFlow() {
             appContainer.style.transition = 'opacity 0.4s ease';
         }
 
+        switchTab(appState.activeTab || 'dashboard');
+
         overlay.style.opacity = '0';
         setTimeout(() => {
             overlay.style.display = 'none';
@@ -1121,6 +1123,8 @@ function applyUserSession(user) {
         patientNavItems.forEach(item => {
             item.style.display = 'flex';
         });
+
+        switchTab(appState.activeTab || 'dashboard');
     }
 
     renderDoctorNotes();
