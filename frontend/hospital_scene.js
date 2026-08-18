@@ -462,7 +462,6 @@
         drawClouds();
         drawHospitalBuilding();
         drawGroundAndRoads();
-        drawAmbulance();
 
         requestAnimationFrame(animate);
     }
