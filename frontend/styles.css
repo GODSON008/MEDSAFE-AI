@@ -2072,23 +2072,32 @@ body.light-theme .btn-checkbox.btn-skip {
     top: 0;
     left: 0;
     width: 100vw;
+    width: 100%;
     height: 100vh;
+    height: 100dvh;
+    min-height: 100vh;
+    min-height: 100dvh;
     background: #0f172a; /* Fallback while video loads */
     z-index: 9999;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 20px 16px;
+    box-sizing: border-box;
 }
 
 /* Full-Screen Background Video */
 #login-bg-video {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
+    width: 100vw;
     width: 100%;
-    height: 100%;
+    height: 100vh;
+    height: 100dvh;
     object-fit: cover;
     z-index: 0;
     pointer-events: none;
@@ -2101,13 +2110,17 @@ body.light-theme .btn-checkbox.btn-skip {
 
 /* Dark gradient overlay on top of video for text readability */
 #login-video-overlay {
-    position: absolute;
+    position: fixed;
     inset: 0;
+    width: 100vw;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
     background: linear-gradient(
         135deg,
-        rgba(2, 6, 23, 0.72) 0%,
-        rgba(15, 23, 42, 0.55) 50%,
-        rgba(2, 6, 23, 0.72) 100%
+        rgba(2, 6, 23, 0.76) 0%,
+        rgba(15, 23, 42, 0.58) 50%,
+        rgba(2, 6, 23, 0.78) 100%
     );
     z-index: 1;
     pointer-events: none;
@@ -3240,75 +3253,345 @@ body.light-theme .lab-report-card {
 /* ==========================================================================
    Responsive Mobile Styling (Audited for 375px and 390px widths)
    ========================================================================== */
+/* ==========================================================================
+   Comprehensive Responsive Mobile System (Optimized for 360px to 768px screens)
+   ========================================================================== */
 @media (max-width: 768px) {
-    /* 1. App Layout Container adjustments */
+    /* 1. Global Touch & Typography Fixes (Prevents iOS auto-zoom on input focus) */
+    input, select, textarea {
+        font-size: 16px !important; /* Prevents iOS Safari 100% zoom-in */
+    }
+
+    button {
+        touch-action: manipulation;
+    }
+
+    /* 2. Login Screen & Background Video Mobile Optimization */
+    #login-screen-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 100vh !important;
+        min-height: 100dvh !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: max(16px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left)) !important;
+        box-sizing: border-box !important;
+    }
+
+    #login-bg-video {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100vw !important;
+        width: 100% !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        object-fit: cover !important;
+        z-index: 0 !important;
+        pointer-events: none !important;
+    }
+
+    #login-video-overlay {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        width: 100% !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        background: linear-gradient(
+            135deg,
+            rgba(2, 6, 23, 0.78) 0%,
+            rgba(15, 23, 42, 0.62) 50%,
+            rgba(2, 6, 23, 0.8) 100%
+        ) !important;
+        z-index: 1 !important;
+    }
+
+    .auth-stage {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: auto !important;
+        padding: 0 !important;
+    }
+
+    .auth-card {
+        padding: 20px 16px !important;
+        border-radius: 20px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: 0 15px 35px -5px rgba(0, 0, 0, 0.5), 0 0 25px rgba(14, 165, 233, 0.15) !important;
+    }
+
+    .auth-header {
+        margin-bottom: 16px !important;
+    }
+
+    .auth-logo {
+        font-size: 19px !important;
+        gap: 6px !important;
+    }
+
+    .auth-subtitle {
+        font-size: 12px !important;
+    }
+
+    .auth-role-tabs {
+        gap: 6px !important;
+        margin-bottom: 14px !important;
+        padding: 3px !important;
+    }
+
+    .auth-role-tab {
+        padding: 8px 6px !important;
+        font-size: 12px !important;
+        min-height: 38px !important;
+    }
+
+    .btn-google-signin {
+        min-height: 44px !important;
+        font-size: 13px !important;
+        padding: 10px 12px !important;
+    }
+
+    .auth-divider {
+        margin: 14px 0 !important;
+    }
+
+    .auth-form-group {
+        margin-bottom: 12px !important;
+    }
+
+    .auth-form-group label {
+        font-size: 11.5px !important;
+        margin-bottom: 4px !important;
+    }
+
+    .auth-input-wrapper {
+        min-height: 42px !important;
+    }
+
+    .auth-input-wrapper input {
+        min-height: 42px !important;
+        padding: 9px 12px 9px 38px !important;
+    }
+
+    .auth-action-btn {
+        min-height: 44px !important;
+        font-size: 13.5px !important;
+        margin-top: 6px !important;
+    }
+
+    .auth-options-row {
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+        margin-top: 10px !important;
+        margin-bottom: 12px !important;
+        font-size: 11.5px !important;
+    }
+
+    .auth-toggle-link {
+        margin-top: 14px !important;
+        font-size: 12px !important;
+    }
+
+    /* 3. App Layout Container adjustments */
     .app-container {
-        position: relative;
+        position: relative !important;
         flex-direction: column !important;
         overflow-x: hidden !important;
         height: 100vh !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
         width: 100% !important;
     }
 
-    /* 2. Sidebar turned into absolute overlay drawer */
+    /* 4. Mobile Drawer Sidebar */
     .sidebar {
-        position: absolute !important;
+        position: fixed !important;
         top: 0 !important;
-        left: -260px !important; /* Hidden by default */
-        width: 260px !important;
+        left: -280px !important; /* Hidden offscreen */
+        width: 280px !important;
         height: 100vh !important;
-        z-index: 1000 !important;
+        height: 100dvh !important;
+        z-index: 10000 !important;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5) !important;
+        box-shadow: 12px 0 35px rgba(0, 0, 0, 0.6) !important;
+        padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) 16px !important;
     }
     
     .sidebar.active {
-        transform: translateX(260px) !important;
+        transform: translateX(280px) !important;
     }
 
-    /* 3. Main Content viewport scroll area */
+    /* 5. Main Content viewport scroll area */
     .main-content {
         width: 100% !important;
         max-width: 100% !important;
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
         overflow-x: hidden !important;
+        padding-bottom: env(safe-area-inset-bottom) !important;
     }
 
-    /* 4. Top Bar adjustments and mobile toggle button */
+    /* 6. Doctor Mode Banner on Mobile */
+    #doctor-mode-banner {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        padding: 10px 14px !important;
+        font-size: 12px !important;
+    }
+
+    #doctor-mode-banner > div:last-child {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        gap: 8px !important;
+    }
+
+    #doctor-mode-banner .btn-sm {
+        flex: 1 !important;
+        justify-content: center !important;
+        padding: 6px 8px !important;
+        font-size: 11px !important;
+    }
+
+    /* 7. Top Bar adjustments and mobile toggle button */
     .top-bar {
-        padding: 0 16px !important;
-        height: 60px !important;
-        gap: 12px !important;
+        padding: 10px 14px !important;
+        height: auto !important;
+        min-height: 56px !important;
+        gap: 10px !important;
+        flex-wrap: wrap !important;
     }
     
+    .page-title-section {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+    }
+
+    .page-title-section > div:first-child {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-start !important;
+        gap: 8px !important;
+        flex-wrap: wrap !important;
+    }
+
     .page-title-section h1 {
-        font-size: 18px !important;
+        font-size: 16px !important;
+        margin: 0 !important;
     }
     
     .btn-sidebar-toggle {
-        display: flex !important; /* Visible on mobile */
+        display: flex !important;
+        padding: 6px !important;
+        border-radius: 8px !important;
+        background: rgba(255, 255, 255, 0.08) !important;
     }
 
-    /* Hide the quick stats bar on mobile to prevent squishing and overflow */
+    #patient-id-badge-container {
+        margin-left: 0 !important;
+        font-size: 11px !important;
+        padding: 2px 8px !important;
+    }
+
+    #dash-patient-subheading {
+        font-size: 11px !important;
+        margin-top: 2px !important;
+    }
+
+    /* Hide the desktop quick stats bar on mobile to prevent overflow */
     .quick-stats-bar {
         display: none !important;
     }
 
-    /* 5. Welcome Banner */
-    .welcome-banner {
-        padding: 16px !important;
+    /* 8. Doctor Workspace Tab on Mobile */
+    #tab-doctor-workspace > div:first-child {
+        padding: 16px 14px !important;
+        border-radius: 14px !important;
+        margin-bottom: 16px !important;
+    }
+
+    #tab-doctor-workspace > div:first-child > div {
         flex-direction: column !important;
         align-items: flex-start !important;
         gap: 12px !important;
+    }
+
+    #tab-doctor-workspace > div:first-child > div > div:last-child {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+    }
+
+    #page-doc-workspace-title {
+        font-size: 1.15rem !important;
+    }
+
+    #page-doc-workspace-subtitle {
+        font-size: 11.5px !important;
+    }
+
+    #tab-doctor-workspace > div:nth-child(2) {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+
+    #tab-doctor-workspace .glass-card {
+        padding: 16px 14px !important;
+    }
+
+    #page-input-search-patient-id {
+        width: 100% !important;
+        min-height: 42px !important;
+    }
+
+    #page-btn-search-patient {
+        min-height: 42px !important;
+        padding: 0 16px !important;
+    }
+
+    /* 9. Welcome Banner */
+    .welcome-banner {
+        padding: 14px !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+        border-radius: 16px !important;
+    }
+
+    .welcome-banner h2 {
+        font-size: 1.1rem !important;
+    }
+
+    .welcome-banner p {
+        font-size: 12px !important;
     }
     
     .shield-graphic {
         display: none !important;
     }
 
-    /* 6. Dashboard Grid to 1 Column */
+    /* 10. Dashboard Grid to 1 Column */
     .dashboard-grid {
         grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        gap: 14px !important;
+    }
+
+    .dashboard-card {
+        padding: 16px 14px !important;
+        border-radius: 16px !important;
     }
 
     .dashboard-card.span-1,
@@ -3318,32 +3601,58 @@ body.light-theme .lab-report-card {
     }
     
     .compliance-circle-container {
-        transform: scale(0.9) !important;
-        margin: 0 auto !important;
+        transform: scale(0.85) !important;
+        margin: -8px auto !important;
     }
 
-    /* 7. Checklist Tab responsive layout */
+    /* 11. Checklist Tab responsive layout */
+    .checklist-header {
+        padding: 14px 12px !important;
+        gap: 12px !important;
+        border-radius: 16px !important;
+    }
+
+    .checklist-header > div:first-child {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .checklist-header > div:first-child > div:last-child {
+        justify-content: space-between !important;
+        width: 100% !important;
+    }
+
     .checklist-column {
-        padding: 16px 8px !important;
+        padding: 14px 10px !important;
+        border-radius: 16px !important;
     }
     
     .calendar-bar {
-        gap: 4px !important;
+        gap: 6px !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 4px 2px 8px 2px !important;
+        justify-content: flex-start !important;
     }
     
     .calendar-day {
+        min-width: 44px !important;
+        flex-shrink: 0 !important;
         padding: 8px 4px !important;
+        border-radius: 10px !important;
     }
     
     .day-num {
-        font-size: 14px !important;
+        font-size: 13.5px !important;
     }
     
     .checklist-row-item {
         padding: 12px !important;
+        border-radius: 12px !important;
         flex-direction: column !important;
         align-items: stretch !important;
-        gap: 12px !important;
+        gap: 10px !important;
     }
     
     .checklist-left {
@@ -3359,108 +3668,76 @@ body.light-theme .lab-report-card {
         padding-top: 8px !important;
     }
 
-    /* 8. Medications List Layout Grid */
+    /* 12. Medications List Layout Grid */
     .meds-layout-grid {
         grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        gap: 14px !important;
+    }
+
+    .meds-list-container {
+        padding: 16px 14px !important;
+        border-radius: 16px !important;
     }
 
     .meds-card-grid {
         grid-template-columns: 1fr !important;
-        gap: 12px !important;
+        gap: 10px !important;
     }
     
     .meds-sidebar {
         width: 100% !important;
-        margin-top: 16px !important;
+        margin-top: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
     }
 
-    /* 9. Symptoms Tab Layout */
+    .form-card {
+        padding: 16px 14px !important;
+        border-radius: 16px !important;
+    }
+
+    .field-row {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+
+    .add-allergy-row {
+        gap: 8px !important;
+    }
+
+    .add-allergy-row input {
+        min-height: 42px !important;
+    }
+
+    /* 13. Symptoms Tab Layout */
     .symptoms-grid {
         grid-template-columns: 1fr !important;
-        gap: 16px !important;
+        gap: 14px !important;
+    }
+
+    .symptoms-left-col {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 14px !important;
+    }
+
+    .symptoms-form-container,
+    .symptoms-history-container {
+        padding: 16px 14px !important;
+        border-radius: 16px !important;
     }
     
     .chart-wrapper {
-        margin: 12px 0 16px 0 !important;
+        margin: 10px 0 14px 0 !important;
         height: 200px !important;
     }
 
-    /* 10. Lab Reports Layout */
-    .lab-reports-container {
-        flex-direction: column !important;
-        gap: 16px !important;
-    }
-    
-    .lab-reports-left,
-    .lab-reports-right {
-        width: 100% !important;
-        padding: 16px 0 !important;
-    }
-
-    /* 11. Printable Doctor Visit Reports Tab */
-    .report-summary-stats {
-        grid-template-columns: 1fr !important;
-        gap: 12px !important;
-    }
-    
-    .report-sheet-container {
-        padding: 16px !important;
-        overflow-x: hidden !important;
-    }
-        .table-responsive {
-        width: 100% !important;
-        overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        margin-bottom: 16px !important;
-    }
-    
-    .report-table {
-        width: 100% !important;
-        border-collapse: collapse !important;
-        font-size: 12px !important;
-        white-space: nowrap !important;
-    }
-    /* 12. Chat Interface adjustments */
-    .chat-layout {
-        grid-template-columns: 1fr !important;
-        height: calc(100vh - 60px) !important;
-        gap: 12px !important;
-    }
-
-    .chat-sidebar {
-        display: none !important;
-    }
-    
-    .chat-container-main {
-        height: 100% !important;
-    }
-    
-    .chat-messages {
-        padding: 16px !important;
-    }
-
-    .chat-input-bar {
-        padding: 12px !important;
-    }
-
-    .chat-bubble-inner {
-        max-width: 90% !important;
-    }
-    
-    .tab-pane {
-        padding: 16px !important;
-    }
-    
-    .modal-card {
-        padding: 20px 16px !important;
-        width: 92% !important;
-        max-width: 480px !important;
-    }
-
-    /* 13. Mobile Pharmacy Search & Results Card Responsiveness */
+    /* 14. Mobile Pharmacy Search */
     #nearest-pharmacies-card {
-        padding: 14px !important;
+        padding: 16px 14px !important;
+        margin-top: 0 !important;
+        border-radius: 16px !important;
     }
 
     #nearest-pharmacies-card > div:nth-child(3) {
@@ -3470,17 +3747,26 @@ body.light-theme .lab-report-card {
 
     #input-pharmacy-location {
         width: 100% !important;
+        min-height: 42px !important;
     }
 
     #btn-search-area-pharmacies {
         width: 100% !important;
+        min-height: 42px !important;
         padding: 10px !important;
+        justify-content: center !important;
+    }
+
+    #btn-find-pharmacies {
+        min-height: 44px !important;
+        font-size: 13px !important;
     }
 
     .pharmacy-result-item {
         flex-direction: column !important;
         align-items: flex-start !important;
-        gap: 12px !important;
+        gap: 10px !important;
+        padding: 12px !important;
     }
 
     .pharmacy-result-actions {
@@ -3488,5 +3774,171 @@ body.light-theme .lab-report-card {
         justify-content: flex-end !important;
         padding-top: 8px !important;
         border-top: 1px solid rgba(14, 165, 233, 0.15) !important;
+    }
+
+    /* 15. Lab Reports Layout */
+    .lab-reports-container {
+        flex-direction: column !important;
+        gap: 14px !important;
+    }
+    
+    .lab-reports-left,
+    .lab-reports-right {
+        width: 100% !important;
+        padding: 0 !important;
+    }
+
+    .upload-dropzone-card,
+    .lab-reports-right.glass-card {
+        padding: 16px 14px !important;
+        border-radius: 16px !important;
+    }
+
+    .dropzone-area {
+        padding: 24px 14px !important;
+        border-radius: 12px !important;
+    }
+
+    /* 16. Doctor Visit Reports Tab */
+    .reports-header {
+        padding: 16px 14px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        border-radius: 16px !important;
+    }
+
+    #btn-download-pdf-report {
+        width: 100% !important;
+        justify-content: center !important;
+        min-height: 44px !important;
+    }
+
+    .report-summary-stats {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+    
+    .report-sheet-container {
+        padding: 16px 12px !important;
+        overflow-x: hidden !important;
+        border-radius: 16px !important;
+    }
+
+    .table-responsive {
+        width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin-bottom: 14px !important;
+        border-radius: 8px !important;
+    }
+    
+    .report-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 11.5px !important;
+        white-space: nowrap !important;
+    }
+
+    #doctor-notes-section {
+        padding: 14px 12px !important;
+    }
+
+    #doctor-notes-section .no-print > div {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    #doctor-notes-textarea {
+        min-height: 75px !important;
+    }
+
+    #btn-send-doctor-notes {
+        width: 100% !important;
+        min-height: 42px !important;
+        justify-content: center !important;
+    }
+
+    /* 17. Chat Interface Mobile */
+    .chat-layout {
+        grid-template-columns: 1fr !important;
+        height: calc(100vh - 70px) !important;
+        height: calc(100dvh - 70px) !important;
+        gap: 10px !important;
+    }
+
+    .chat-sidebar {
+        display: none !important;
+    }
+    
+    .chat-messages-container {
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        padding: 12px !important;
+        border-radius: 16px !important;
+    }
+
+    .chat-header {
+        padding-bottom: 8px !important;
+        margin-bottom: 8px !important;
+    }
+    
+    .messages-stream {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 8px 4px !important;
+    }
+
+    .chat-bubble-inner,
+    .msg-bubble {
+        max-width: 88% !important;
+        font-size: 13.5px !important;
+        padding: 10px 14px !important;
+    }
+
+    .chat-input-bar {
+        padding: 8px 10px !important;
+        gap: 8px !important;
+        margin-top: 8px !important;
+    }
+
+    .chat-input-bar input {
+        min-height: 42px !important;
+    }
+    
+    .tab-pane {
+        padding: 14px 12px !important;
+    }
+    
+    /* 18. Modals Mobile Optimization */
+    .modal-overlay {
+        padding: 12px !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .modal-card {
+        padding: 18px 14px !important;
+        width: 100% !important;
+        max-width: 96% !important;
+        max-height: 88vh !important;
+        max-height: 88dvh !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-radius: 18px !important;
+    }
+
+    .modal-actions {
+        flex-direction: column !important;
+        gap: 8px !important;
+        width: 100% !important;
+    }
+
+    .modal-actions .btn {
+        width: 100% !important;
+        min-height: 44px !important;
+        justify-content: center !important;
     }
 }
