@@ -2422,16 +2422,23 @@ async function loadDoctorReport() {
         const medsBody = document.querySelector('#report-meds-table tbody');
         medsBody.innerHTML = '';
         if (report.medications.length === 0) {
-            medsBody.innerHTML = '<tr><td colspan="5" class="text-center">No medications scheduled.</td></tr>';
+            medsBody.innerHTML = '<tr><td colspan="6" class="text-center">No medications recorded.</td></tr>';
         } else {
             report.medications.forEach(m => {
                 const tr = document.createElement('tr');
+                const isStopped = m.is_active === 0 || (m.end_date && m.end_date.trim() !== '');
+                const stopDateFormatted = m.end_date ? m.end_date.substring(0, 10) : 'Stopped';
+                const statusBadge = isStopped
+                    ? `<span class="badge-status skipped" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); font-weight:700; padding:4px 8px; border-radius:12px; font-size:11px;">Stopped: ${escapeHTML(stopDateFormatted)}</span>`
+                    : `<span class="badge-status taken" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-weight:700; padding:4px 8px; border-radius:12px; font-size:11px;">Active</span>`;
+
                 tr.innerHTML = `
-                    <td><strong>${m.name}</strong></td>
-                    <td>${m.dosage}</td>
-                    <td>${m.schedule_description}</td>
-                    <td>${m.time_of_day}</td>
-                    <td>${m.start_date}</td>
+                    <td><strong>${escapeHTML(m.name)}</strong></td>
+                    <td>${escapeHTML(m.dosage || '--')}</td>
+                    <td>${escapeHTML(m.schedule_description || m.frequency || '--')}</td>
+                    <td>${escapeHTML(m.time_of_day || '08:00')}</td>
+                    <td>${escapeHTML(m.start_date ? m.start_date.substring(0, 10) : '--')}</td>
+                    <td>${statusBadge}</td>
                 `;
                 medsBody.appendChild(tr);
             });

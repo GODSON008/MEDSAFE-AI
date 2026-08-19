@@ -880,21 +880,26 @@ def get_report_pdf_endpoint(
     story.append(t_stats)
     story.append(Spacer(1, 15))
     
-    # 1. Active Medications
-    story.append(Paragraph("1. Active Medications & Schedules", h2_style))
-    meds_headers = ["Medication", "Dosage", "Schedule", "Time of Day", "Started Date"]
+    # 1. Medications
+    story.append(Paragraph("1. Medications & Schedules (Active & Past)", h2_style))
+    meds_headers = ["Medication", "Dosage", "Schedule", "Time of Day", "Started Date", "Status / Stop Date"]
     meds_rows = [meds_headers]
     for m in report["medications"]:
+        is_stopped = m.get("is_active") == 0 or bool(m.get("end_date"))
+        stop_dt = str(m.get("end_date"))[:10] if m.get("end_date") else "Discontinued"
+        status_text = f"Stopped: {stop_dt}" if is_stopped else "Active"
+        status_color = "#dc2626" if is_stopped else "#16a34a"
         meds_rows.append([
-            Paragraph(f"<b>{m['name']}</b>", normal_style),
-            m["dosage"],
-            m["schedule_description"],
-            m["time_of_day"],
-            m["start_date"]
+            Paragraph(f"<b>{m.get('name', '--')}</b>", normal_style),
+            str(m.get("dosage", "--")),
+            str(m.get("schedule_description") or m.get("frequency") or "--"),
+            str(m.get("time_of_day", "08:00")),
+            str(m.get("start_date", "--"))[:10] if m.get("start_date") else "--",
+            Paragraph(f"<font color='{status_color}'><b>{status_text}</b></font>", normal_style)
         ])
     if len(meds_rows) == 1:
-        meds_rows.append(["No scheduled medications found.", "", "", "", ""])
-    t_meds = Table(meds_rows, colWidths=[120, 90, 150, 90, 90])
+        meds_rows.append(["No medications found.", "", "", "", "", ""])
+    t_meds = Table(meds_rows, colWidths=[105, 75, 120, 75, 75, 90])
     t_meds.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#f8fafc')),
         ('LINEBELOW', (0,0), (-1,0), 1.5, colors.HexColor('#94a3b8')),
