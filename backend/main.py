@@ -496,6 +496,17 @@ def delete_medication_endpoint(med_id: int, current_user: AuthenticatedUser = De
     conn.close()
     return {"success": True, "message": "Medication discontinued. Past compliance history preserved."}
 
+@app.delete("/api/report/medications/{med_id}")
+def delete_stopped_medication_from_report_endpoint(med_id: int, current_user: AuthenticatedUser = Depends(get_current_user)):
+    """Permanently deletes a stopped medication record from the report and database."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM adherence WHERE medication_id = ?", (med_id,))
+    cursor.execute("DELETE FROM medications WHERE id = ? AND user_email = ?", (med_id, current_user.email))
+    conn.commit()
+    conn.close()
+    return {"success": True, "message": "Stopped medication permanently removed from report."}
+
 @app.get("/api/allergies")
 def get_allergies_endpoint(current_user: AuthenticatedUser = Depends(get_current_user)):
     conn = get_connection()

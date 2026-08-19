@@ -2480,7 +2480,7 @@ async function loadDoctorReport() {
         const medsBody = document.querySelector('#report-meds-table tbody');
         medsBody.innerHTML = '';
         if (report.medications.length === 0) {
-            medsBody.innerHTML = '<tr><td colspan="6" class="text-center">No medications recorded.</td></tr>';
+            medsBody.innerHTML = '<tr><td colspan="7" class="text-center">No medications recorded.</td></tr>';
         } else {
             report.medications.forEach(m => {
                 const tr = document.createElement('tr');
@@ -2490,6 +2490,12 @@ async function loadDoctorReport() {
                     ? `<span class="badge-status skipped" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3); font-weight:700; padding:4px 8px; border-radius:12px; font-size:11px;">Stopped: ${escapeHTML(stopDateFormatted)}</span>`
                     : `<span class="badge-status taken" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-weight:700; padding:4px 8px; border-radius:12px; font-size:11px;">Active</span>`;
 
+                const actionHTML = isStopped
+                    ? `<button type="button" class="btn-delete-report-med" onclick="deleteStoppedMedicationFromReport(${m.id})" title="Delete Stopped Medicine from Report">
+                         <i data-lucide="trash-2"></i> Delete
+                       </button>`
+                    : `<span style="color:var(--text-muted); font-size:12px;">--</span>`;
+
                 tr.innerHTML = `
                     <td><strong>${escapeHTML(m.name)}</strong></td>
                     <td>${escapeHTML(m.dosage || '--')}</td>
@@ -2497,9 +2503,11 @@ async function loadDoctorReport() {
                     <td>${escapeHTML(m.time_of_day || '08:00')}</td>
                     <td>${escapeHTML(m.start_date ? m.start_date.substring(0, 10) : '--')}</td>
                     <td>${statusBadge}</td>
+                    <td class="no-print" style="text-align: right;">${actionHTML}</td>
                 `;
                 medsBody.appendChild(tr);
             });
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
         }
         
         // Allergy Profile list
@@ -2563,6 +2571,30 @@ async function loadDoctorReport() {
         console.error("Error loading doctor report details:", err);
     }
 }
+
+// ─── Delete Stopped Medication from Doctor Report ──────────────────────────
+window.deleteStoppedMedicationFromReport = async function(medId) {
+    if (!confirm("Are you sure you want to completely remove this stopped medication from your report?")) {
+        return;
+    }
+    try {
+        const res = await fetch(`/api/report/medications/${medId}`, {
+            method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data.success) {
+            showNotification("Stopped medication removed from report.", "success");
+            invalidatePrefetchCache();
+            await refreshData();
+            await loadDoctorReport();
+        } else {
+            showNotification(data.message || "Failed to remove medication.", "error");
+        }
+    } catch (err) {
+        console.error("Error deleting stopped medication from report:", err);
+        showNotification("Failed to remove medication from report.", "error");
+    }
+};
 
 // ─── Print Doctor Report ───────────────────────────────────────────────────
 // Opens a popup window with the report DOM content rendered cleanly for print,
