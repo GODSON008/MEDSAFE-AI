@@ -255,8 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Lab Reports System
     initLabReportsSystem();
 
-    // Initialize Interactive AI Copilot Voice Input & Quick Chips
-    initVoiceRecognition();
+    // Initialize Interactive AI Copilot Quick Chips
     initQuickChips();
 
     // Mobile Sidebar Drawer Toggler
@@ -2720,15 +2719,12 @@ chatForm.addEventListener('submit', async (e) => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         
-        // Finalize time badge and attach interactive action buttons (TTS & Copy)
+        // Finalize time badge and attach 1-click copy action button
         botMsgDiv.querySelector('.msg-time').textContent = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
         
         const actionBar = document.createElement('div');
         actionBar.className = 'msg-action-bar';
         actionBar.innerHTML = `
-            <button type="button" class="msg-action-btn btn-tts-speak" onclick="speakMessage(this)" title="Listen Aloud (Text-to-Speech)">
-                <i data-lucide="volume-2"></i> Listen
-            </button>
             <button type="button" class="msg-action-btn btn-copy-msg" onclick="copyMessageText(this)" title="Copy Message Text">
                 <i data-lucide="copy"></i> Copy
             </button>
@@ -2744,7 +2740,7 @@ chatForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Append regular chat message with TTS & Copy actions
+// Append regular chat message
 function appendChatMessage(text, sender) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${sender}`;
@@ -2754,9 +2750,6 @@ function appendChatMessage(text, sender) {
     if (sender === 'bot') {
         actionsHTML = `
             <div class="msg-action-bar">
-                <button type="button" class="msg-action-btn btn-tts-speak" onclick="speakMessage(this)" title="Listen Aloud (Text-to-Speech)">
-                    <i data-lucide="volume-2"></i> Listen
-                </button>
                 <button type="button" class="msg-action-btn btn-copy-msg" onclick="copyMessageText(this)" title="Copy Message Text">
                     <i data-lucide="copy"></i> Copy
                 </button>
@@ -2773,111 +2766,6 @@ function appendChatMessage(text, sender) {
     chatMessages.scrollTop = chatMessages.scrollHeight;
     if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
-
-// ── Web Speech API Voice Input & Audio Reader ────────────────────────────────
-let speechRecognitionInstance = null;
-
-function initVoiceRecognition() {
-    const micBtn = document.getElementById('btn-chat-mic');
-    const inputEl = document.getElementById('chat-input-message');
-    if (!micBtn || !inputEl) return;
-
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) {
-        // Hide mic button gracefully if browser lacks SpeechRecognition support
-        micBtn.style.display = 'none';
-        return;
-    }
-
-    try {
-        speechRecognitionInstance = new SpeechRec();
-        speechRecognitionInstance.continuous = false;
-        speechRecognitionInstance.interimResults = false;
-        speechRecognitionInstance.lang = 'en-US';
-
-        let isListening = false;
-
-        micBtn.addEventListener('click', () => {
-            if (!isListening) {
-                try {
-                    speechRecognitionInstance.start();
-                    isListening = true;
-                    micBtn.classList.add('listening');
-                    micBtn.setAttribute('title', 'Listening... Speak your symptom or question now');
-                    inputEl.setAttribute('placeholder', 'Listening to your voice...');
-                } catch (err) {
-                    console.warn("Speech recognition start issue:", err);
-                }
-            } else {
-                speechRecognitionInstance.stop();
-                isListening = false;
-                micBtn.classList.remove('listening');
-                inputEl.setAttribute('placeholder', 'Ask MedSafe AI or speak...');
-            }
-        });
-
-        speechRecognitionInstance.onresult = (e) => {
-            const transcript = e.results[0][0].transcript;
-            if (transcript) {
-                inputEl.value = transcript;
-                inputEl.focus();
-            }
-        };
-
-        speechRecognitionInstance.onerror = (e) => {
-            console.warn("Speech recognition error:", e.error);
-            isListening = false;
-            micBtn.classList.remove('listening');
-            inputEl.setAttribute('placeholder', 'Ask MedSafe AI or speak...');
-        };
-
-        speechRecognitionInstance.onend = () => {
-            isListening = false;
-            micBtn.classList.remove('listening');
-            inputEl.setAttribute('placeholder', 'Ask MedSafe AI or speak...');
-        };
-    } catch (e) {
-        console.warn("Could not init speech recognition:", e);
-        micBtn.style.display = 'none';
-    }
-}
-
-// TTS Audio Speak
-window.speakMessage = function(btn) {
-    if (!window.speechSynthesis) {
-        alert("Text-to-Speech audio is not supported in this browser.");
-        return;
-    }
-    const messageContainer = btn.closest('.message');
-    const bubble = messageContainer ? messageContainer.querySelector('.msg-bubble') : null;
-    if (!bubble) return;
-
-    // Stop currently speaking audio
-    window.speechSynthesis.cancel();
-
-    // Clean text of markdown/HTML artifacts for clean speech
-    const cleanText = bubble.innerText.replace(/[#*`_~]/g, '').trim();
-    if (!cleanText) return;
-
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    btn.innerHTML = '<i data-lucide="volume-x"></i> Stop';
-    if (window.lucide && lucide.createIcons) lucide.createIcons();
-
-    utterance.onend = () => {
-        btn.innerHTML = '<i data-lucide="volume-2"></i> Listen';
-        if (window.lucide && lucide.createIcons) lucide.createIcons();
-    };
-
-    utterance.onerror = () => {
-        btn.innerHTML = '<i data-lucide="volume-2"></i> Listen';
-        if (window.lucide && lucide.createIcons) lucide.createIcons();
-    };
-
-    window.speechSynthesis.speak(utterance);
-};
 
 // Copy Message Text
 window.copyMessageText = function(btn) {

@@ -1890,43 +1890,7 @@ body.light-theme .btn-checkbox.btn-skip {
     color: #38bdf8;
 }
 
-/* Voice Mic Button */
-.btn-voice-mic {
-    width: 42px;
-    height: 42px;
-    border-radius: var(--border-radius-sm);
-    background: rgba(22, 26, 42, 0.6);
-    border: 1px solid var(--glass-card-border);
-    color: #94a3b8;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.btn-voice-mic:hover {
-    border-color: #38bdf8;
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.1);
-}
-
-.btn-voice-mic.listening {
-    background: rgba(239, 68, 68, 0.2);
-    border-color: #ef4444;
-    color: #ef4444;
-    animation: micPulse 1.2s infinite;
-    box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
-}
-
-@keyframes micPulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-    70% { transform: scale(1.06); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
-    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-}
-
-/* Bot Message Action Buttons (TTS, Copy) */
+/* Bot Message Action Buttons (Copy) */
 .msg-action-bar {
     display: flex;
     gap: 8px;
