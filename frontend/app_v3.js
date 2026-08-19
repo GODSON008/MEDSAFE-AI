@@ -204,17 +204,76 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Download PDF Button Click Listener
+    // ── Floating Toast Notifications System ───────────────────────────────────
+    window.showNotification = function(message, type = 'info', duration = 4000) {
+        let toastContainer = document.getElementById('toast-notification-container');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'toast-notification-container';
+            toastContainer.className = 'toast-container';
+            document.body.appendChild(toastContainer);
+        }
+        const toast = document.createElement('div');
+        toast.className = `toast-item toast-${type}`;
+        
+        let iconName = 'info';
+        if (type === 'success') iconName = 'check-circle';
+        else if (type === 'warning') iconName = 'alert-triangle';
+        else if (type === 'error' || type === 'danger') iconName = 'alert-circle';
+
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i data-lucide="${iconName}"></i>
+                <span>${escapeHTML(message)}</span>
+            </div>
+            <button type="button" class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+        `;
+        toastContainer.appendChild(toast);
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+        setTimeout(() => {
+            toast.classList.add('toast-fade-out');
+            setTimeout(() => {
+                if (toast.parentElement) toast.parentElement.removeChild(toast);
+            }, 300);
+        }, duration);
+    };
+
+    // Global Modal Escape Key Listener
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            const openModals = document.querySelectorAll('.modal-overlay');
+            openModals.forEach(m => {
+                if (m.style.display !== 'none') {
+                    m.style.display = 'none';
+                }
+            });
+        }
+    });
+
+    // Download PDF Button Click Listener with Visual Progress
     const btnDownloadPdfReport = document.getElementById('btn-download-pdf-report');
     if (btnDownloadPdfReport) {
         btnDownloadPdfReport.addEventListener('click', () => {
             const notes = appState.doctorNotes.map(n => '• ' + n).join('\n');
             const token = window.reportPdfToken;
             if (!token) {
-                alert("Doctor report data is still loading. Please wait a moment.");
+                showNotification("Doctor report data is still loading. Please wait a moment.", "warning");
                 return;
             }
+            const originalHTML = btnDownloadPdfReport.innerHTML;
+            btnDownloadPdfReport.innerHTML = `<i data-lucide="loader-2" class="spin"></i> Generating PDF...`;
+            btnDownloadPdfReport.disabled = true;
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+
             window.location.href = `/api/report/pdf?email=${encodeURIComponent(appState.currentUserEmail)}&token=${token}&doctor_notes=${encodeURIComponent(notes)}`;
+            
+            setTimeout(() => {
+                btnDownloadPdfReport.innerHTML = originalHTML;
+                btnDownloadPdfReport.disabled = false;
+                if (window.lucide && lucide.createIcons) lucide.createIcons();
+                showNotification("Clinical summary report PDF downloaded successfully!", "success");
+            }, 2500);
         });
     }
     
