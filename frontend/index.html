@@ -417,6 +417,17 @@
 
 
 
+                    <!-- 7-Day Adherence Streak Tracker -->
+                    <div class="dashboard-card glass-card span-1">
+                        <div class="card-header-actions">
+                            <h3>7-Day Adherence Streak</h3>
+                            <span class="streak-badge-pill" id="dash-streak-count"><i data-lucide="flame"></i> 0 Days</span>
+                        </div>
+                        <div class="dash-streak-container" id="dash-adherence-streak">
+                            <!-- 7 Day streak dots rendered dynamically -->
+                        </div>
+                    </div>
+
                     <!-- Symptoms overview -->
                     <div class="dashboard-card glass-card span-2">
                         <div class="card-header-actions">
@@ -829,9 +840,20 @@
                             <span class="dot"></span>
                         </div>
 
+                        <!-- Quick Suggestion Action Chips -->
+                        <div class="chat-quick-chips" id="chat-quick-chips">
+                            <button type="button" class="chip-btn" data-prompt="Check drug interactions for all my active medications"><i data-lucide="shield-alert"></i> Check Interactions</button>
+                            <button type="button" class="chip-btn" data-prompt="What should I do if I miss a morning dose?"><i data-lucide="help-circle"></i> Missed Dose Advice</button>
+                            <button type="button" class="chip-btn" data-prompt="Find nearest 24/7 chemist pharmacy"><i data-lucide="map-pin"></i> Nearest Chemist</button>
+                            <button type="button" class="chip-btn" data-prompt="Explain common side effects of my medications"><i data-lucide="file-text"></i> Side Effects</button>
+                        </div>
+
                         <!-- Chat input -->
                         <form id="chat-input-form" class="chat-input-bar">
-                            <input type="text" id="chat-input-message" placeholder="Ask MedSafe AI..." autocomplete="off">
+                            <button type="button" id="btn-chat-mic" class="btn-voice-mic" title="Voice Input (Speech-to-Text)">
+                                <i data-lucide="mic"></i>
+                            </button>
+                            <input type="text" id="chat-input-message" placeholder="Ask MedSafe AI or speak..." autocomplete="off">
                             <button type="submit" class="btn btn-primary btn-icon"><i data-lucide="send"></i></button>
                         </form>
                     </div>

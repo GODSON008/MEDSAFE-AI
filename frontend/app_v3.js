@@ -255,6 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize Lab Reports System
     initLabReportsSystem();
 
+    // Initialize Interactive AI Copilot Voice Input & Quick Chips
+    initVoiceRecognition();
+    initQuickChips();
+
     // Mobile Sidebar Drawer Toggler
     const btnSidebarToggle = document.getElementById('btn-sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
@@ -1331,6 +1335,216 @@ function getDosesForDate(targetDate) {
     return mergedDoses;
 }
 
+// ── Zero-Dependency Canvas Confetti Celebration ──────────────────────────────
+function launchConfetti() {
+    try {
+        let canvas = document.getElementById('confetti-canvas');
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.id = 'confetti-canvas';
+            canvas.style.position = 'fixed';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.width = '100vw';
+            canvas.style.height = '100vh';
+            canvas.style.pointerEvents = 'none';
+            canvas.style.zIndex = '999999';
+            document.body.appendChild(canvas);
+        }
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const colors = ['#10b981', '#38bdf8', '#818cf8', '#f59e0b', '#ec4899', '#a855f7'];
+        const particles = [];
+        for (let i = 0; i < 80; i++) {
+            particles.push({
+                x: window.innerWidth * 0.5 + (Math.random() - 0.5) * 250,
+                y: window.innerHeight * 0.4 + (Math.random() - 0.5) * 80,
+                vx: (Math.random() - 0.5) * 16,
+                vy: (Math.random() - 0.8) * 14,
+                size: Math.random() * 8 + 4,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                rotation: Math.random() * 360,
+                rSpeed: (Math.random() - 0.5) * 12,
+                opacity: 1
+            });
+        }
+
+        let start = null;
+        function frame(timestamp) {
+            if (!start) start = timestamp;
+            const progress = (timestamp - start) / 2500;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.28; // Gravity
+                p.vx *= 0.98; // Air resistance
+                p.rotation += p.rSpeed;
+                p.opacity = Math.max(0, 1 - progress);
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate((p.rotation * Math.PI) / 180);
+                ctx.globalAlpha = p.opacity;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+                ctx.restore();
+            });
+
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+            }
+        }
+        requestAnimationFrame(frame);
+    } catch (e) {
+        console.warn("Confetti animation failed:", e);
+    }
+}
+
+// ── Smooth Metric Count-Up Animation ─────────────────────────────────────────
+function animateValue(el, start, end, duration = 600, suffix = '') {
+    if (!el) return;
+    if (isNaN(end)) {
+        el.textContent = `${end}${suffix}`;
+        return;
+    }
+    const startTime = performance.now();
+    function update(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        const current = Math.round(start + (end - start) * easeOut);
+        el.textContent = `${current}${suffix}`;
+        if (progress < 1) {
+            requestAnimationFrame(update);
+        } else {
+            el.textContent = `${end}${suffix}`;
+        }
+    }
+    requestAnimationFrame(update);
+}
+
+// ── Pill Avatar Visual Classifier ───────────────────────────────────────────
+function getPillVisual(name = '', dosage = '') {
+    const text = `${name} ${dosage}`.toLowerCase();
+    if (text.includes('capsule') || text.includes('cap') || text.includes('amoxicillin') || text.includes('omeprazole') || text.includes('doxycycline')) {
+        return {
+            formClass: 'form-capsule',
+            icon: 'pill',
+            label: 'Capsule'
+        };
+    } else if (text.includes('syrup') || text.includes('liquid') || text.includes('suspension') || text.includes('solution') || text.includes('ml')) {
+        return {
+            formClass: 'form-syrup',
+            icon: 'flask-conical',
+            label: 'Liquid/Syrup'
+        };
+    } else if (text.includes('injection') || text.includes('insulin') || text.includes('vial') || text.includes('shot')) {
+        return {
+            formClass: 'form-injection',
+            icon: 'syringe',
+            label: 'Injection'
+        };
+    } else if (text.includes('tablet') || text.includes('tab') || text.includes('paracetamol') || text.includes('aspirin') || text.includes('metformin') || text.includes('lisinopril')) {
+        return {
+            formClass: 'form-tablet',
+            icon: 'circle-dot',
+            label: 'Tablet'
+        };
+    }
+    return {
+        formClass: 'form-default',
+        icon: 'pill',
+        label: 'Medication'
+    };
+}
+
+// ── 7-Day Adherence Streak Calculator & Renderer ─────────────────────────────
+function renderAdherenceStreak() {
+    const container = document.getElementById('dash-adherence-streak');
+    const badgeEl = document.getElementById('dash-streak-count');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const today = new Date();
+    const todayStr = formatYMD(today);
+
+    let consecutiveStreak = 0;
+    const daysList = [];
+
+    // Build last 7 days array (from 6 days ago to today)
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i);
+        const dateStr = formatYMD(d);
+        const doses = getDosesForDate(dateStr);
+        const takenCount = doses.filter(h => h.status === 'taken').length;
+        const totalCount = doses.length;
+
+        let status = 'empty';
+        if (totalCount > 0) {
+            if (takenCount === totalCount) {
+                status = 'perfect';
+            } else if (takenCount > 0) {
+                status = 'partial';
+            }
+        }
+
+        daysList.push({
+            dateStr,
+            dayName: daysOfWeek[d.getDay()],
+            dayNum: d.getDate(),
+            isToday: dateStr === todayStr,
+            status,
+            takenCount,
+            totalCount
+        });
+    }
+
+    // Calculate streak counting backwards
+    for (let i = daysList.length - 1; i >= 0; i--) {
+        const day = daysList[i];
+        if (day.status === 'perfect') {
+            consecutiveStreak++;
+        } else if (day.isToday && day.takenCount > 0) {
+            consecutiveStreak++;
+        } else if (!day.isToday) {
+            break;
+        }
+    }
+
+    if (badgeEl) {
+        badgeEl.innerHTML = `<i data-lucide="flame"></i> ${consecutiveStreak} Day${consecutiveStreak === 1 ? '' : 's'}`;
+    }
+
+    daysList.forEach(d => {
+        const tile = document.createElement('div');
+        tile.className = `streak-day-tile ${d.isToday ? 'today' : ''}`;
+        
+        let dotIcon = 'minus';
+        if (d.status === 'perfect') dotIcon = 'check';
+        else if (d.status === 'partial') dotIcon = 'clock';
+
+        tile.innerHTML = `
+            <span class="streak-day-name">${d.dayName}</span>
+            <div class="streak-day-dot ${d.status}" title="${d.dateStr}: ${d.takenCount}/${d.totalCount} doses taken">
+                <i data-lucide="${dotIcon}"></i>
+            </div>
+        `;
+        container.appendChild(tile);
+    });
+
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+}
+
 // Dashboard Widgets Update
 function updateDashboardWidgets() {
     // Calculate compliance rate (taken / total scheduled in past 7 days)
@@ -1340,8 +1554,17 @@ function updateDashboardWidgets() {
     const total = taken + skipped;
     const rate = total > 0 ? Math.round((taken / total) * 100) : 100;
     
-    document.getElementById('stat-compliance-rate').textContent = `${rate}%`;
-    document.getElementById('dash-compliance-rate').textContent = `${rate}%`;
+    const statCompRateEl = document.getElementById('stat-compliance-rate');
+    const dashCompRateEl = document.getElementById('dash-compliance-rate');
+    
+    if (statCompRateEl) {
+        const currentVal = parseInt(statCompRateEl.textContent, 10) || 0;
+        animateValue(statCompRateEl, currentVal, rate, 500, '%');
+    }
+    if (dashCompRateEl) {
+        const currentVal = parseInt(dashCompRateEl.textContent, 10) || 0;
+        animateValue(dashCompRateEl, currentVal, rate, 500, '%');
+    }
     
     // Set circle progress ring
     const circle = document.getElementById('compliance-ring');
@@ -1353,9 +1576,15 @@ function updateDashboardWidgets() {
         circle.style.strokeDashoffset = offset;
     }
 
-    // Set Allergy count
+    // Set Allergy count with animation
     const allergyCountEl = document.getElementById('stat-allergies-count');
-    if (allergyCountEl) allergyCountEl.textContent = (appState.allergies || []).length;
+    if (allergyCountEl) {
+        const currentVal = parseInt(allergyCountEl.textContent, 10) || 0;
+        animateValue(allergyCountEl, currentVal, (appState.allergies || []).length, 400);
+    }
+
+    // Render 7-Day Adherence Streak Tracker
+    renderAdherenceStreak();
 
     // Load Today's Scheduled Checklist Doses on Dashboard (Synchronized with active medications)
     const today = formatYMD(new Date());
@@ -1369,11 +1598,14 @@ function updateDashboardWidgets() {
             container.innerHTML = '<p class="empty-state">No medications scheduled for today.</p>';
         } else {
             todayDoses.forEach(dose => {
+                const pillVis = getPillVisual(dose.medication_name, dose.medication_dosage);
                 const div = document.createElement('div');
                 div.className = 'checklist-summary-item';
                 div.innerHTML = `
                     <div class="med-info-summary">
-                        <i data-lucide="pill"></i>
+                        <div class="pill-avatar-icon ${pillVis.formClass}" title="${pillVis.label}">
+                            <i data-lucide="${pillVis.icon}"></i>
+                        </div>
                         <div>
                             <div class="med-name-txt">${escapeHTML(dose.medication_name)} ${escapeHTML(dose.medication_dosage)}</div>
                             <div class="med-schedule-txt">Scheduled: ${escapeHTML(dose.medication_time_of_day || '08:00')}</div>
@@ -1602,9 +1834,13 @@ function updateChecklistUI() {
             `;
         }
 
+        const pillVis = getPillVisual(dose.medication_name, dose.medication_dosage);
         item.innerHTML = `
             <div class="checklist-left">
                 <span class="time-slot">${escapeHTML(dose.medication_time_of_day || '08:00')}</span>
+                <div class="pill-avatar-icon ${pillVis.formClass}" title="${pillVis.label}">
+                    <i data-lucide="${pillVis.icon}"></i>
+                </div>
                 <div class="check-med-details">
                     <h4>${escapeHTML(dose.medication_name)} ${escapeHTML(dose.medication_dosage)}</h4>
                     <span style="${isPastDate && !isTaken ? 'color:#f87171; font-weight:600;' : ''}">${statusLabel}</span>
@@ -1658,6 +1894,18 @@ async function toggleDoseStatus(adherenceId, targetStatus) {
     updateChecklistUI();
     updateDashboardWidgets();
     invalidatePrefetchCache();
+
+    // Check for 100% adherence celebration today
+    const todayStr = formatYMD(new Date());
+    const targetDate = appState.selectedDate || todayStr;
+    if (targetDate === todayStr && newStatus === 'taken') {
+        const todayDoses = getDosesForDate(todayStr);
+        const allCompleted = todayDoses.length > 0 && todayDoses.every(d => (d.id === adherenceId ? true : d.status === 'taken'));
+        if (allCompleted) {
+            launchConfetti();
+            showNotification("🎉 Outstanding! You have taken 100% of your scheduled doses today!", "success");
+        }
+    }
     
     try {
         const res = await fetch(`/api/adherence/${adherenceId}`, {
@@ -1693,6 +1941,7 @@ function updateMedicationsUI() {
     }
 
     appState.medications.forEach(med => {
+        const pillVis = getPillVisual(med.name, med.dosage);
         const card = document.createElement('div');
         card.className = 'med-card';
         card.innerHTML = `
@@ -1700,14 +1949,19 @@ function updateMedicationsUI() {
                 <i data-lucide="trash-2"></i>
             </button>
             <div class="med-card-header">
-                <div class="med-card-title">${med.name}</div>
-                <div class="med-card-dosage">${med.dosage}</div>
+                <div class="pill-avatar-icon ${pillVis.formClass}" title="${pillVis.label}">
+                    <i data-lucide="${pillVis.icon}"></i>
+                </div>
+                <div>
+                    <div class="med-card-title">${escapeHTML(med.name)}</div>
+                    <div class="med-card-dosage">${escapeHTML(med.dosage)}</div>
+                </div>
             </div>
             <div class="med-card-details">
-                <span><i data-lucide="clock"></i> Scheduled: ${med.time_of_day}</span>
-                <span><i data-lucide="calendar"></i> Frequency: ${med.frequency}</span>
-                <span><i data-lucide="info"></i> Details: ${med.schedule_description}</span>
-                <span><i data-lucide="calendar-days"></i> Started: ${med.start_date}</span>
+                <span><i data-lucide="clock"></i> Scheduled: ${escapeHTML(med.time_of_day || '08:00')}</span>
+                <span><i data-lucide="calendar"></i> Frequency: ${escapeHTML(med.frequency || 'Daily')}</span>
+                <span><i data-lucide="info"></i> Details: ${escapeHTML(med.schedule_description || 'None')}</span>
+                <span><i data-lucide="calendar-days"></i> Started: ${escapeHTML(med.start_date ? med.start_date.substring(0, 10) : 'Today')}</span>
             </div>
         `;
         grid.appendChild(card);
@@ -2459,8 +2713,22 @@ chatForm.addEventListener('submit', async (e) => {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }
         
-        // Finalize time badge
+        // Finalize time badge and attach interactive action buttons (TTS & Copy)
         botMsgDiv.querySelector('.msg-time').textContent = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        
+        const actionBar = document.createElement('div');
+        actionBar.className = 'msg-action-bar';
+        actionBar.innerHTML = `
+            <button type="button" class="msg-action-btn btn-tts-speak" onclick="speakMessage(this)" title="Listen Aloud (Text-to-Speech)">
+                <i data-lucide="volume-2"></i> Listen
+            </button>
+            <button type="button" class="msg-action-btn btn-copy-msg" onclick="copyMessageText(this)" title="Copy Message Text">
+                <i data-lucide="copy"></i> Copy
+            </button>
+        `;
+        botMsgDiv.appendChild(actionBar);
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+
         refreshData();
     } catch (err) {
         typingLoader.style.display = 'none';
@@ -2469,27 +2737,177 @@ chatForm.addEventListener('submit', async (e) => {
     }
 });
 
-// Append regular chat message
+// Append regular chat message with TTS & Copy actions
 function appendChatMessage(text, sender) {
     const msgDiv = document.createElement('div');
     msgDiv.className = `message ${sender}`;
     const time = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    
+    let actionsHTML = '';
+    if (sender === 'bot') {
+        actionsHTML = `
+            <div class="msg-action-bar">
+                <button type="button" class="msg-action-btn btn-tts-speak" onclick="speakMessage(this)" title="Listen Aloud (Text-to-Speech)">
+                    <i data-lucide="volume-2"></i> Listen
+                </button>
+                <button type="button" class="msg-action-btn btn-copy-msg" onclick="copyMessageText(this)" title="Copy Message Text">
+                    <i data-lucide="copy"></i> Copy
+                </button>
+            </div>
+        `;
+    }
+
     msgDiv.innerHTML = `
         <div class="msg-bubble">${sender === 'bot' ? parseMarkdown(text) : text.replace(/\n/g, '<br>')}</div>
         <span class="msg-time">${time}</span>
+        ${actionsHTML}
     `;
     chatMessages.appendChild(msgDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
 }
 
-// Bind chat suggestions
-document.querySelectorAll('.suggestion-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const text = btn.getAttribute('data-prompt');
-        document.getElementById('chat-input-message').value = text;
-        chatForm.requestSubmit();
+// ── Web Speech API Voice Input & Audio Reader ────────────────────────────────
+let speechRecognitionInstance = null;
+
+function initVoiceRecognition() {
+    const micBtn = document.getElementById('btn-chat-mic');
+    const inputEl = document.getElementById('chat-input-message');
+    if (!micBtn || !inputEl) return;
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+        // Hide mic button gracefully if browser lacks SpeechRecognition support
+        micBtn.style.display = 'none';
+        return;
+    }
+
+    try {
+        speechRecognitionInstance = new SpeechRec();
+        speechRecognitionInstance.continuous = false;
+        speechRecognitionInstance.interimResults = false;
+        speechRecognitionInstance.lang = 'en-US';
+
+        let isListening = false;
+
+        micBtn.addEventListener('click', () => {
+            if (!isListening) {
+                try {
+                    speechRecognitionInstance.start();
+                    isListening = true;
+                    micBtn.classList.add('listening');
+                    micBtn.setAttribute('title', 'Listening... Speak your symptom or question now');
+                    inputEl.setAttribute('placeholder', 'Listening to your voice...');
+                } catch (err) {
+                    console.warn("Speech recognition start issue:", err);
+                }
+            } else {
+                speechRecognitionInstance.stop();
+                isListening = false;
+                micBtn.classList.remove('listening');
+                inputEl.setAttribute('placeholder', 'Ask MedSafe AI or speak...');
+            }
+        });
+
+        speechRecognitionInstance.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            if (transcript) {
+                inputEl.value = transcript;
+                inputEl.focus();
+            }
+        };
+
+        speechRecognitionInstance.onerror = (e) => {
+            console.warn("Speech recognition error:", e.error);
+            isListening = false;
+            micBtn.classList.remove('listening');
+            inputEl.setAttribute('placeholder', 'Ask MedSafe AI or speak...');
+        };
+
+        speechRecognitionInstance.onend = () => {
+            isListening = false;
+            micBtn.classList.remove('listening');
+            inputEl.setAttribute('placeholder', 'Ask MedSafe AI or speak...');
+        };
+    } catch (e) {
+        console.warn("Could not init speech recognition:", e);
+        micBtn.style.display = 'none';
+    }
+}
+
+// TTS Audio Speak
+window.speakMessage = function(btn) {
+    if (!window.speechSynthesis) {
+        alert("Text-to-Speech audio is not supported in this browser.");
+        return;
+    }
+    const messageContainer = btn.closest('.message');
+    const bubble = messageContainer ? messageContainer.querySelector('.msg-bubble') : null;
+    if (!bubble) return;
+
+    // Stop currently speaking audio
+    window.speechSynthesis.cancel();
+
+    // Clean text of markdown/HTML artifacts for clean speech
+    const cleanText = bubble.innerText.replace(/[#*`_~]/g, '').trim();
+    if (!cleanText) return;
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    btn.innerHTML = '<i data-lucide="volume-x"></i> Stop';
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+    utterance.onend = () => {
+        btn.innerHTML = '<i data-lucide="volume-2"></i> Listen';
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+    };
+
+    utterance.onerror = () => {
+        btn.innerHTML = '<i data-lucide="volume-2"></i> Listen';
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+    };
+
+    window.speechSynthesis.speak(utterance);
+};
+
+// Copy Message Text
+window.copyMessageText = function(btn) {
+    const messageContainer = btn.closest('.message');
+    const bubble = messageContainer ? messageContainer.querySelector('.msg-bubble') : null;
+    if (!bubble) return;
+
+    navigator.clipboard.writeText(bubble.innerText).then(() => {
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="check"></i> Copied!';
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }, 1800);
+    }).catch(err => {
+        console.error("Clipboard copy failed:", err);
     });
-});
+};
+
+// Bind chat suggestions & quick prompt action chips
+function initQuickChips() {
+    const chips = document.querySelectorAll('.chip-btn, .suggestion-btn');
+    const input = document.getElementById('chat-input-message');
+    const form = document.getElementById('chat-input-form');
+    if (!input || !form) return;
+
+    chips.forEach(chip => {
+        chip.addEventListener('click', () => {
+            const prompt = chip.getAttribute('data-prompt');
+            if (prompt) {
+                input.value = prompt;
+                form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { cancelable: true }));
+            }
+        });
+    });
+}
 
 
 

@@ -1017,17 +1017,63 @@ body.light-theme #checklist-date-picker {
     border-color: rgba(255, 255, 255, 0.12);
 }
 
+/* Pill Avatar Visualizer */
+.pill-avatar-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.pill-avatar-icon.form-capsule {
+    background: linear-gradient(135deg, rgba(56, 189, 248, 0.25), rgba(99, 102, 241, 0.25));
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+}
+
+.pill-avatar-icon.form-tablet {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.25), rgba(20, 184, 166, 0.25));
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #10b981;
+}
+
+.pill-avatar-icon.form-syrup {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(234, 88, 12, 0.25));
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    color: #f59e0b;
+}
+
+.pill-avatar-icon.form-injection {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.25), rgba(236, 72, 153, 0.25));
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+}
+
+.pill-avatar-icon.form-default {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(99, 102, 241, 0.25));
+    border: 1px solid rgba(168, 85, 247, 0.4);
+    color: #c084fc;
+}
+
+.pill-avatar-icon i, .pill-avatar-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
 .checklist-left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
 }
 
 .time-slot {
     font-size: 13px;
     color: var(--text-muted);
     font-weight: var(--font-weight-subheader);
-    min-width: 60px;
+    min-width: 54px;
 }
 
 .check-med-details {
@@ -1715,11 +1761,210 @@ body.light-theme .btn-checkbox.btn-skip {
     to { opacity: 1; transform: translateY(-4px); }
 }
 
+/* 7-Day Adherence Streak Card */
+.streak-badge-pill {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.15);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.streak-badge-pill i, .streak-badge-pill svg {
+    width: 14px;
+    height: 14px;
+    color: #f59e0b;
+}
+
+.dash-streak-container {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.streak-day-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 4px;
+    border-radius: var(--border-radius-sm);
+    background: rgba(22, 26, 42, 0.4);
+    border: 1px solid var(--glass-card-border);
+    transition: all 0.2s ease;
+}
+
+.streak-day-tile.today {
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+}
+
+.streak-day-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.streak-day-dot {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.streak-day-dot.perfect {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.streak-day-dot.partial {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.streak-day-dot.empty {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.streak-day-dot i, .streak-day-dot svg {
+    width: 12px;
+    height: 12px;
+    stroke-width: 2.5;
+}
+
+/* Quick Prompt Action Chips */
+.chat-quick-chips {
+    display: flex;
+    gap: 8px;
+    padding: 10px 24px 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+.chat-quick-chips::-webkit-scrollbar {
+    display: none;
+}
+
+.chip-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    background: rgba(22, 26, 42, 0.6);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    color: #bae6fd;
+    border-radius: 20px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.chip-btn:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(56, 189, 248, 0.25);
+}
+
+.chip-btn i, .chip-btn svg {
+    width: 13px;
+    height: 13px;
+    color: #38bdf8;
+}
+
+/* Voice Mic Button */
+.btn-voice-mic {
+    width: 42px;
+    height: 42px;
+    border-radius: var(--border-radius-sm);
+    background: rgba(22, 26, 42, 0.6);
+    border: 1px solid var(--glass-card-border);
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-voice-mic:hover {
+    border-color: #38bdf8;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+}
+
+.btn-voice-mic.listening {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
+    color: #ef4444;
+    animation: micPulse 1.2s infinite;
+    box-shadow: 0 0 14px rgba(239, 68, 68, 0.4);
+}
+
+@keyframes micPulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1.06); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* Bot Message Action Buttons (TTS, Copy) */
+.msg-action-bar {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.msg-action-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #94a3b8;
+    font-size: 11.5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.15s ease;
+}
+
+.msg-action-btn:hover {
+    background: rgba(56, 189, 248, 0.15);
+    border-color: rgba(56, 189, 248, 0.3);
+    color: #e0f2fe;
+}
+
+.msg-action-btn i, .msg-action-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
 .chat-input-bar {
-    padding: 16px 24px;
+    padding: 14px 24px;
     border-top: 1px solid var(--glass-card-border);
     display: flex;
-    gap: 12px;
+    align-items: center;
+    gap: 10px;
     background-color: rgba(10, 13, 26, 0.2);
 }
 
