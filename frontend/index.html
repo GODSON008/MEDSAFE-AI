@@ -14,7 +14,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Identity Services (for Google Sign-In) -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <link rel="stylesheet" href="styles.css?v=21">
+    <link rel="stylesheet" href="styles.css?v=22">
     <!-- Critical: prevent flash of app content before auth check -->
     <style>
         /* Hide app immediately — shown only after auth passes via JS */
@@ -31,9 +31,47 @@
     <!-- Login Screen Overlay -->
     <div id="login-screen-overlay">
         <!-- Full-Screen Background Video -->
-        <video id="login-bg-video" autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="auto">
+        <video id="login-bg-video" autoplay muted loop playsinline webkit-playsinline x5-playsinline preload="auto" disablepictureinpicture disableremoteplayback>
             <source src="assets/hospital.mp4" type="video/mp4">
         </video>
+        <script>
+            (function() {
+                var v = document.getElementById('login-bg-video');
+                if (!v) return;
+                v.muted = true;
+                v.defaultMuted = true;
+                v.volume = 0;
+                v.playsInline = true;
+
+                function playBgVideo() {
+                    if (!v.paused) return;
+                    var p = v.play();
+                    if (p && typeof p.catch === 'function') {
+                        p.catch(function() {
+                            var resumeOnUser = function() {
+                                v.muted = true;
+                                v.defaultMuted = true;
+                                v.volume = 0;
+                                v.play().catch(function(){});
+                            };
+                            ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'click', 'scroll', 'focus'].forEach(function(evt) {
+                                window.addEventListener(evt, resumeOnUser, { once: true, passive: true });
+                            });
+                        });
+                    }
+                }
+
+                playBgVideo();
+                v.addEventListener('loadedmetadata', playBgVideo, { once: true });
+                v.addEventListener('loadeddata', playBgVideo, { once: true });
+                v.addEventListener('canplay', playBgVideo, { once: true });
+                v.addEventListener('canplaythrough', playBgVideo, { once: true });
+                window.addEventListener('pageshow', playBgVideo);
+                document.addEventListener('visibilitychange', function() {
+                    if (!document.hidden && v.paused) playBgVideo();
+                });
+            })();
+        </script>
         <!-- Dark overlay on top of video for readability -->
         <div id="login-video-overlay"></div>
 
@@ -970,6 +1008,6 @@
     </div>
 
 
-    <script src="app_v3.js?v=24"></script>
+    <script src="app_v3.js?v=25"></script>
 </body>
 </html>

@@ -999,14 +999,34 @@ function initAuthFlow() {
         if (introStage) introStage.style.display = 'none';
         authStage.classList.add('active');
 
-        // Start background video playback (handles autoplay policy)
+        // Start background video playback (handles autoplay policy and guarantees playback on first load)
         const bgVideo = document.getElementById('login-bg-video');
         if (bgVideo) {
-            bgVideo.play().catch(() => {
-                // Autoplay blocked — play on first user interaction
-                const playOnClick = () => { bgVideo.play(); document.removeEventListener('click', playOnClick); };
-                document.addEventListener('click', playOnClick, { once: true });
-            });
+            bgVideo.muted = true;
+            bgVideo.defaultMuted = true;
+            bgVideo.volume = 0;
+            bgVideo.playsInline = true;
+
+            const safePlay = () => {
+                if (bgVideo.paused) {
+                    const p = bgVideo.play();
+                    if (p && typeof p.catch === 'function') {
+                        p.catch(() => {
+                            const unlockOnInteraction = () => {
+                                bgVideo.muted = true;
+                                bgVideo.play().catch(() => {});
+                            };
+                            ['pointerdown', 'touchstart', 'mousedown', 'keydown', 'click', 'scroll', 'focus'].forEach(evt => {
+                                window.addEventListener(evt, unlockOnInteraction, { once: true, passive: true });
+                            });
+                        });
+                    }
+                }
+            };
+
+            safePlay();
+            bgVideo.addEventListener('loadeddata', safePlay, { once: true });
+            bgVideo.addEventListener('canplay', safePlay, { once: true });
         }
     }
 
@@ -3601,13 +3621,11 @@ function initFloatingBackdrop() {
     bgContainer.classList.remove('active');
 
     // List of medical icons we want to float
-    const iconsList = ['stethoscope', 'pill', 'clipboard-list', 'stethoscope', 'shield-check', 'activity'];
+    const iconsList = ['stethoscope', 'pill', 'clipboard-list', 'shield-check', 'activity'];
     const colorsList = ['color-cyan', 'color-emerald', 'color-slate'];
     const animationsList = ['float-bob-1', 'float-bob-2', 'float-bob-3'];
 
-    const count = 18; // Spawns 18 floating elements
-    const elements = [];
-
+    const count = 7; // Lightweight decorative count to keep 60fps video buttery smooth
     for (let i = 0; i < count; i++) {
         const el = document.createElement('div');
         el.className = 'floating-medical-icon';
@@ -3620,46 +3638,32 @@ function initFloatingBackdrop() {
         const iconName = iconsList[Math.floor(Math.random() * iconsList.length)];
         el.innerHTML = `<i data-lucide="${iconName}"></i>`;
 
-        // Random sizing between 36px and 80px
-        const size = Math.random() * 44 + 36;
+        // Sizing between 32px and 56px
+        const size = Math.random() * 24 + 32;
         el.style.fontSize = `${size}px`;
         el.style.width = `${size}px`;
         el.style.height = `${size}px`;
 
-        // Position coordinates spread out randomly across screen
-        const leftPercent = Math.random() * 100;
-        const topPercent = Math.random() * 100;
+        // Position coordinates spread out evenly
+        const leftPercent = Math.random() * 90 + 5;
+        const topPercent = Math.random() * 85 + 5;
         el.style.left = `${leftPercent}%`;
         el.style.top = `${topPercent}%`;
 
-        // Set opacity randomly (slight variations)
-        el.style.opacity = Math.random() * 0.5 + 0.3;
+        // Subtle opacity
+        el.style.opacity = Math.random() * 0.35 + 0.2;
 
-        // Random animation attributes (bobbing style, delay, duration)
+        // Smooth GPU keyframe animation
         const anim = animationsList[Math.floor(Math.random() * animationsList.length)];
-        const duration = Math.random() * 15 + 15; // 15s to 30s
-        const delay = Math.random() * -20; // negative delay so they start pre-animated
+        const duration = Math.random() * 12 + 16; // 16s to 28s
+        const delay = Math.random() * -15;
 
-        // Assign CSS variables for drift translation offsets
-        const px = (Math.random() - 0.5) * 50;
-        const py = (Math.random() - 0.5) * 50;
+        const px = (Math.random() - 0.5) * 30;
+        const py = (Math.random() - 0.5) * 30;
         el.style.setProperty('--px', `${px}px`);
         el.style.setProperty('--py', `${py}px`);
 
         el.style.animation = `${anim} ${duration}s ease-in-out ${delay}s infinite`;
-
-        // Store positioning attributes for mouse movement parallax
-        // Parallax factor (depth coefficient): smaller size = deeper/slower movement
-        const depth = (size / 80) * 20; // up to 20px of movement
-        elements.push({
-            dom: el,
-            leftPercent: leftPercent,
-            topPercent: topPercent,
-            depth: depth,
-            currentX: 0,
-            currentY: 0
-        });
-
         bgContainer.appendChild(el);
     }
 
@@ -3678,38 +3682,6 @@ function initFloatingBackdrop() {
     setTimeout(() => {
         bgContainer.classList.add('active');
     }, 100);
-
-    // Mouse movement listener on the overlay container for parallax effect
-    const overlay = document.getElementById('login-screen-overlay');
-    if (overlay) {
-        // Remove existing listener to prevent duplicate binds on repeated logouts
-        if (overlay._mousemoveHandler) {
-            overlay.removeEventListener('mousemove', overlay._mousemoveHandler);
-        }
-
-        overlay._mousemoveHandler = (e) => {
-            const width = window.innerWidth;
-            const height = window.innerHeight;
-            
-            // Normalized offset from the center of screen (-0.5 to 0.5)
-            const ndcX = (e.clientX / width) - 0.5;
-            const ndcY = (e.clientY / height) - 0.5;
-
-            // Apply interactive translation on each element based on its depth
-            elements.forEach(item => {
-                const targetX = ndcX * -item.depth * 2.5;
-                const targetY = ndcY * -item.depth * 2.5;
-
-                // Smooth interpolation (lerp)
-                item.currentX += (targetX - item.currentX) * 0.08;
-                item.currentY += (targetY - item.currentY) * 0.08;
-
-                item.dom.style.transform = `translate3d(${item.currentX}px, ${item.currentY}px, 0)`;
-            });
-        };
-
-        overlay.addEventListener('mousemove', overlay._mousemoveHandler);
-    }
 }
 
 // Alarms & Reminder System State variables
